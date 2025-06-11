@@ -1,0 +1,13 @@
+package org.project.caribevibes;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class CaribeVibesApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(CaribeVibesApplication.class, args);
+    }
+
+}
