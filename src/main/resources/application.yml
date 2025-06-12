@@ -1,0 +1,61 @@
+# Configuración de la aplicación Caribe Vibes
+spring:
+  application:
+    name: caribe-vibes
+    
+  # Configuración de la base de datos
+  datasource:
+    url: ${DATABASE_URL_CARIBE_VIBES:jdbc:mysql://localhost:3306/caribe_vibes}
+    username: ${DATABASE_USERNAME_CARIBE_VIBES:user}
+    password: ${DATABASE_PASSWORD_CARIBE_VIBES:password}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    
+  # Configuración JPA
+  jpa:
+    hibernate:
+      ddl-auto: validate # Solo valida el esquema, no lo crea (usamos Flyway)
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+        
+  # Configuración de Flyway para migraciones
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+    
+  # Configuración de seguridad
+  security:
+    jwt:
+      secret: ${JWT_SECRET:J3T-P4ssW-2O24-talentoTech-*ai0iOos}
+      expiration: 3600000 # 1 hora en milisegundos
+
+# Configuración del servidor
+server:
+  port: ${PORT:8080}
+  servlet:
+    context-path: /api
+
+# Configuración de logging
+logging:
+  level:
+    org.project.caribevibes: INFO
+    org.springframework.security: DEBUG
+    org.flywaydb: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/caribe-vibes.log
+
+# Configuración personalizada de la aplicación
+app:
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:3000,http://localhost:8080}
+  pdf:
+    logo-path: static/images/logo.png
+  upload:
+    path: ${UPLOAD_PATH:uploads/}
