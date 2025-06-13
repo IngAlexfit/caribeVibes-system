@@ -1,7 +1,6 @@
 package org.project.caribevibes.repository.user;
 
 import org.project.caribevibes.entity.user.User;
-import org.project.caribevibes.entity.user.UserRole;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -80,11 +79,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     /**
      * Obtiene usuarios por rol específico
-     * 
-     * @param role Rol a buscar
+     *
+     * @param roleName Nombre del rol a buscar (ej: "ADMIN", "CLIENT")
      * @return Lista de usuarios con el rol especificado
      */
-    List<User> findByRole(UserRole role);
+    @Query("SELECT u FROM User u JOIN u.roles r WHERE r.name = :roleName")
+    List<User> findByRoleName(@Param("roleName") String roleName);
 
     /**
      * Obtiene usuarios creados después de una fecha específica

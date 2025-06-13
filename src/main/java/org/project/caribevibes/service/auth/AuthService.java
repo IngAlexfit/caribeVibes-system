@@ -3,9 +3,10 @@ package org.project.caribevibes.service.auth;
 import org.project.caribevibes.dto.request.LoginRequestDTO;
 import org.project.caribevibes.dto.request.RegisterRequestDTO;
 import org.project.caribevibes.dto.response.AuthResponseDTO;
+import org.project.caribevibes.entity.user.Role;
 import org.project.caribevibes.entity.user.User;
-import org.project.caribevibes.entity.user.UserRole;
 import org.project.caribevibes.exception.BusinessException;
+import org.project.caribevibes.repository.user.RoleRepository;
 import org.project.caribevibes.repository.user.UserRepository;
 import org.project.caribevibes.security.JwtTokenUtil;
 import org.slf4j.Logger;
@@ -54,6 +55,9 @@ public class AuthService {
     @Autowired
     private AuthenticationManager authenticationManager;
 
+    @Autowired
+    private RoleRepository roleRepository;
+
     /**
      * Registra un nuevo usuario en el sistema.
      * 
@@ -71,16 +75,22 @@ public class AuthService {
         // Verificar que el usuario no exista
         if (userRepository.existsByEmail(registerRequest.getEmail())) {
             throw new BusinessException("Ya existe un usuario con este email");
-        }        // Crear el nuevo usuario con rol USER por defecto
+        }
+
+        // Obtener el rol CLIENT desde la base de datos
+        Role clientRole = roleRepository.findByName("CLIENT")
+                .orElseThrow(() -> new BusinessException("No se encontró el rol CLIENT en la base de datos"));
+
+        // Crear el nuevo usuario con rol CLIENT por defecto
         User newUser = new User();
-        newUser.setUsername(registerRequest.getEmail()); // Usar email como username
+        newUser.setUsername(registerRequest.getUsername());
         newUser.setFirstName(registerRequest.getFirstName());
         newUser.setLastName(registerRequest.getLastName());
         newUser.setEmail(registerRequest.getEmail());
         newUser.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
-        newUser.setRole(UserRole.USER); // UserRole es un enum
         newUser.setIsActive(true);
         newUser.setCreatedAt(LocalDateTime.now());
+        newUser.getRoles().add(clientRole);
 
         // Guardar en la base de datos
         User savedUser = userRepository.save(newUser);
@@ -177,9 +187,8 @@ public class AuthService {
             userInfo.put("email", user.getEmail());
             userInfo.put("firstName", user.getFirstName());
             userInfo.put("lastName", user.getLastName());
-            userInfo.put("role", user.getRole().name());
+            userInfo.put("roles", user.getRoleNames());
             userInfo.put("active", user.getIsActive());
-            
             return userInfo;
 
         } catch (Exception e) {
@@ -261,7 +270,7 @@ public class AuthService {
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .fullName(user.getFullName())
-                .role(user.getRole().name())
+                .roles(user.getRoleNames())
                 .isActive(user.getIsActive())
                 .createdAt(user.getCreatedAt())
                 .build();

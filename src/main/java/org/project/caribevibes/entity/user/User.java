@@ -18,8 +18,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Entidad que representa un usuario en el sistema Caribe Vibes.
@@ -104,18 +106,24 @@ public class User implements UserDetails {
     private Map<String, Object> preferences;
 
     /**
-     * Rol del usuario en el sistema
+     * Roles del usuario en el sistema (relación muchos a muchos)
      */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false)
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "user_roles",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
     @Builder.Default
-    private UserRole role = UserRole.USER;
+    private Set<Role> roles = new HashSet<>();
 
     // Implementación de UserDetails para Spring Security
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
+        return roles.stream()
+            .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName()))
+            .toList();
     }
 
     @Override
@@ -157,5 +165,19 @@ public class User implements UserDetails {
             return firstName + " " + lastName;
         }
         return firstName != null ? firstName : username;
+    }
+
+    /**
+     * Obtiene el nombre del rol del usuario
+     */
+    public String getRoleName() {
+        return roles.stream().findFirst().map(Role::getName).orElse(null);
+    }
+
+    /**
+     * Obtiene los nombres de los roles del usuario
+     */
+    public List<String> getRoleNames() {
+        return roles.stream().map(Role::getName).toList();
     }
 }

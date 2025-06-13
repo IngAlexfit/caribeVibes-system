@@ -3,21 +3,41 @@
 -- Fecha: 2024-12-11
 -- Descripción: Creación de todas las tablas principales del sistema
 
+-- Tabla de roles
+CREATE TABLE roles (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE
+);
+
+-- Insertar roles iniciales
+INSERT INTO roles (name) VALUES ('ADMIN');
+INSERT INTO roles (name) VALUES ('CLIENT');
+
 -- Tabla de usuarios
 CREATE TABLE users (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(80) NOT NULL UNIQUE,
-    email VARCHAR(120) NOT NULL UNIQUE,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    email VARCHAR(150) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
-    first_name VARCHAR(80),
-    last_name VARCHAR(80),
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    is_active BOOLEAN DEFAULT TRUE,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
     preferences JSON,
-    role ENUM('USER', 'ADMIN', 'OPERATOR') DEFAULT 'USER',
-    
     INDEX idx_users_email (email),
     INDEX idx_users_username (username)
+);
+
+-- Tabla intermedia de usuarios y roles (muchos a muchos)
+CREATE TABLE user_roles (
+    user_id BIGINT NOT NULL,
+    role_id BIGINT NOT NULL,
+    PRIMARY KEY (user_id, role_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE
+
+    
 );
 
 -- Tabla de experiencias

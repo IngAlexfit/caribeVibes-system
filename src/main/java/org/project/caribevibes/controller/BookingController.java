@@ -21,9 +21,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -144,7 +141,7 @@ public class BookingController {
         
         // Solo el propietario o un admin pueden ver la reserva
         if (!booking.getUser().getId().equals(currentUser.getId()) && 
-            !currentUser.getRole().toString().equals("ADMIN")) {
+            !currentUser.getRoleNames().contains("ADMIN")) {
             throw new ResourceNotFoundException("Reserva", "id", id);
         }
         
@@ -174,7 +171,7 @@ public class BookingController {
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario", "email", userEmail));
         
         if (!booking.getUser().getId().equals(currentUser.getId()) && 
-            !currentUser.getRole().toString().equals("ADMIN")) {
+            !currentUser.getRoleNames().contains("ADMIN")) {
             throw new ResourceNotFoundException("Reserva", "código de confirmación", confirmationCode);
         }
         
@@ -321,7 +318,7 @@ public class BookingController {
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario", "email", userEmail));
         
         if (!booking.getUser().getId().equals(currentUser.getId()) && 
-            !currentUser.getRole().toString().equals("ADMIN")) {
+            !currentUser.getRoleNames().contains("ADMIN")) {
             throw new ResourceNotFoundException("Reserva", "id", id);
         }
         
@@ -366,7 +363,7 @@ public class BookingController {
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario", "email", userEmail));
         
         if (!booking.getUser().getId().equals(currentUser.getId()) && 
-            !currentUser.getRole().toString().equals("ADMIN")) {
+            !currentUser.getRoleNames().contains("ADMIN")) {
             throw new ResourceNotFoundException("Reserva", "id", bookingId);
         }
         
@@ -397,7 +394,7 @@ public class BookingController {
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario", "email", userEmail));
         
         if (!booking.getUser().getId().equals(currentUser.getId()) && 
-            !currentUser.getRole().toString().equals("ADMIN")) {
+            !currentUser.getRoleNames().contains("ADMIN")) {
             throw new ResourceNotFoundException("Reserva", "id", bookingId);
         }
         
@@ -470,11 +467,10 @@ public class BookingController {
                     .orElseThrow(() -> new ResourceNotFoundException("Reserva", "id", bookingId));
 
             // Verificar que el usuario tiene acceso a esta reserva (solo su propia reserva o admin)
-            if (!currentUser.getRole().toString().equals("ADMIN") && 
+            if (!currentUser.getRoleNames().contains("ADMIN") && 
                 !booking.getUser().getId().equals(currentUser.getId())) {
-                logger.warn("Usuario {} intentó acceder a reserva de otro usuario: {}", 
-                          currentUser.getEmail(), bookingId);
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                logger.warn("Usuario {} intentó acceder a reserva de otro usuario: {}", currentUser.getEmail(), booking.getUser().getEmail());
+                throw new ResourceNotFoundException("Reserva", "id", bookingId);
             }
 
             // Por ahora retornamos un error indicando que la funcionalidad está en desarrollo

@@ -157,7 +157,7 @@ public class JwtTokenUtil {
             claims.put("email", user.getEmail());
             claims.put("firstName", user.getFirstName());
             claims.put("lastName", user.getLastName());
-            claims.put("role", user.getRole().name());
+            claims.put("roles", user.getRoleNames()); // ahora es una lista de roles
         }
         
         return createToken(claims, userDetails.getUsername());

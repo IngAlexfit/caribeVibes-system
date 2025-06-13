@@ -30,14 +30,12 @@ spring:
   # Configuración de seguridad
   security:
     jwt:
-      secret: ${JWT_SECRET:J3T-P4ssW-2O24-talentoTech-*ai0iOos}
+      secret: ${JWT_SECRET_CARIBE_VIBES:mySecretKey} #asignar jwt en la variable de entorno, de lo contrario tomara el valor default (no es seguro dejar este valor default XD)
       expiration: 3600000 # 1 hora en milisegundos
 
 # Configuración del servidor
 server:
   port: ${PORT:8080}
-  servlet:
-    context-path: /api
 
 # Configuración de logging
 logging:

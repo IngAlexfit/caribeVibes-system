@@ -1,5 +1,6 @@
 package org.project.caribevibes.security;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.project.caribevibes.entity.user.User;
@@ -134,7 +135,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .email(user.getEmail())
                 .username(user.getUsername())
                 .fullName(user.getFullName())
-                .role(user.getRole().name())
+                .roles(user.getRoleNames())
                 .isActive(user.getIsActive())
                 .build();
     }
@@ -151,7 +152,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         private String email;
         private String username;
         private String fullName;
-        private String role;
+        private List<String> roles;
         private Boolean isActive;
     }
 }

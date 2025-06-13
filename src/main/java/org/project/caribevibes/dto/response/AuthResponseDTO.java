@@ -90,9 +90,9 @@ public class AuthResponseDTO {
         private String fullName;
         
         /**
-         * Rol del usuario en el sistema
+         * Roles del usuario en el sistema
          */
-        private String role;
+        private java.util.List<String> roles;
         
         /**
          * Indica si el usuario está activo
