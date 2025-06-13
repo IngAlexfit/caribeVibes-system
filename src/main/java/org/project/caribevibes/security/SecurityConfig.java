@@ -19,7 +19,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
 
-import java.util.List;
+
 
 /**
  * Configuración de seguridad para el sistema Caribe Vibes.
@@ -75,7 +75,14 @@ public class SecurityConfig {
                 .requestMatchers("/api/contact/create").permitAll()
                 
                 // Endpoints de documentación (Swagger/OpenAPI)
-                .requestMatchers("/api/docs/**", "/api/swagger-ui/**", "/api/v3/api-docs/**").permitAll()
+                .requestMatchers(
+                    "/swagger-ui.html",
+                    "/swagger-ui/**",
+                    "/v3/api-docs",
+                    "/v3/api-docs/**",
+                    "/swagger-resources/**",
+                    "/webjars/**"
+                ).permitAll()
                 
                 // Endpoints de health check
                 .requestMatchers("/api/health", "/api/actuator/health").permitAll()
