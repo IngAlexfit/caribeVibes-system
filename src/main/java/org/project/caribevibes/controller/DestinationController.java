@@ -28,7 +28,7 @@ import java.util.Map;
  * 
  * @author Caribe Vibes Team
  * @version 1.0
- * @since 2024
+ * @since 2025
  */
 @RestController
 @RequestMapping("/api/destinations")

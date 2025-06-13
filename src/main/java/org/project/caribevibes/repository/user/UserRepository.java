@@ -18,7 +18,7 @@ import java.util.Optional;
  * 
  * @author Sistema Caribe Vibes
  * @version 1.0
- * @since 2024
+ * @since 2025
  */
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {

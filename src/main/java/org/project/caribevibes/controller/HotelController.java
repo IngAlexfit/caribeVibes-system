@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
  * 
  * @author Caribe Vibes Team
  * @version 1.0
- * @since 2024
+ * @since 2025
  */
 @RestController
 @RequestMapping("/api/hotels")

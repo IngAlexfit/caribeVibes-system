@@ -8,7 +8,7 @@ package org.project.caribevibes.dto.response;
  * 
  * @author Caribe Vibes Team
  * @version 1.0
- * @since 2024
+ * @since 2025
  */
 public class DestinationBasicDTO {
 
