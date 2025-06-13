@@ -1,14 +1,11 @@
 package org.project.caribevibes.controller;
 
 import org.project.caribevibes.dto.response.DestinationResponseDTO;
-import org.project.caribevibes.dto.response.ExperienceResponseDTO;
 import org.project.caribevibes.entity.destination.Destination;
 import org.project.caribevibes.entity.destination.Activity;
 import org.project.caribevibes.entity.destination.Experience;
 import org.project.caribevibes.service.destination.DestinationService;
 import org.project.caribevibes.exception.ResourceNotFoundException;
-import jakarta.persistence.EntityNotFoundException;
-import org.project.caribevibes.repository.destination.DestinationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

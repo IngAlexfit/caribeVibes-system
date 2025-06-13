@@ -7,7 +7,6 @@ import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
 import com.itextpdf.layout.properties.TextAlignment;
 import com.itextpdf.layout.properties.UnitValue;
-import org.project.caribevibes.dto.response.BookingResponseDTO;
 import org.project.caribevibes.entity.booking.Booking;
 import org.project.caribevibes.entity.booking.BookingActivity;
 import org.project.caribevibes.exception.BusinessException;

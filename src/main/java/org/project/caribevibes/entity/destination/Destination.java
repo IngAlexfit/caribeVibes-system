@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+
 
 /**
  * Entidad que representa un destino turístico en el sistema Caribe Vibes.
