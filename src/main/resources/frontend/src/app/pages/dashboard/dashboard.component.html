@@ -1,0 +1,228 @@
+<div class="dashboard-container">
+  <div class="dashboard-header">
+    <div class="welcome-section">
+      <h1>{{ getWelcomeMessage() }}, {{ currentUser?.firstName }}!</h1>
+      <p>Bienvenido de vuelta a tu panel de Caribe Vibes</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-outline-primary" (click)="refreshData()">
+        <i class="fas fa-sync-alt"></i> Actualizar
+      </button>
+      <button class="btn btn-primary" routerLink="/bookings/new">
+        <i class="fas fa-plus"></i> Nueva Reserva
+      </button>
+    </div>
+  </div>
+
+  <div class="dashboard-content" *ngIf="!isLoading; else loadingTemplate">
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">
+          <i class="fas fa-calendar-check"></i>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.totalBookings }}</h3>
+          <p>Total de Reservas</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon active">
+          <i class="fas fa-clock"></i>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.activeBookings }}</h3>
+          <p>Reservas Activas</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon completed">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.completedBookings }}</h3>
+          <p>Viajes Completados</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon cancelled">
+          <i class="fas fa-times-circle"></i>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.cancelledBookings }}</h3>
+          <p>Cancelaciones</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="content-grid">
+      <!-- Recent Bookings -->
+      <div class="content-section">
+        <div class="section-header">
+          <h2>Reservas Recientes</h2>
+          <a routerLink="/bookings" class="view-all">Ver todas</a>
+        </div>
+        
+        <div class="bookings-list" *ngIf="recentBookings.length > 0; else noBookings">
+          <div class="booking-item" *ngFor="let booking of recentBookings">
+            <div class="booking-info">
+              <h4>{{ booking.hotelName }}</h4>
+              <p class="booking-details">
+                <i class="fas fa-calendar"></i>
+                {{ formatDate(booking.checkInDate) }} - {{ formatDate(booking.checkOutDate) }}
+              </p>
+              <p class="booking-price">{{ formatCurrency(booking.totalPrice) }}</p>
+            </div>
+            <div class="booking-status">
+              <span class="badge" [class]="getStatusBadgeClass(booking.status)">
+                {{ getStatusText(booking.status) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <ng-template #noBookings>
+          <div class="empty-state">
+            <i class="fas fa-calendar-times"></i>
+            <h3>No tienes reservas aún</h3>
+            <p>¡Es hora de planear tu próxima aventura caribeña!</p>
+            <button class="btn btn-primary" routerLink="/destinations">
+              Explorar Destinos
+            </button>
+          </div>
+        </ng-template>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="content-section quick-actions">
+        <div class="section-header">
+          <h2>Acciones Rápidas</h2>
+        </div>
+        
+        <div class="actions-grid">
+          <a routerLink="/destinations" class="action-card">
+            <div class="action-icon">
+              <i class="fas fa-map-marked-alt"></i>
+            </div>
+            <h3>Explorar Destinos</h3>
+            <p>Descubre lugares increíbles</p>
+          </a>
+
+          <a routerLink="/hotels" class="action-card">
+            <div class="action-icon">
+              <i class="fas fa-hotel"></i>
+            </div>
+            <h3>Buscar Hoteles</h3>
+            <p>Encuentra el alojamiento perfecto</p>
+          </a>
+
+          <a routerLink="/bookings" class="action-card">
+            <div class="action-icon">
+              <i class="fas fa-list"></i>
+            </div>
+            <h3>Mis Reservas</h3>
+            <p>Gestiona tus viajes</p>
+          </a>
+
+          <a routerLink="/profile" class="action-card">
+            <div class="action-icon">
+              <i class="fas fa-user-cog"></i>
+            </div>
+            <h3>Mi Perfil</h3>
+            <p>Actualiza tu información</p>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recommendations Grid -->
+    <div class="recommendations-grid">
+      <!-- Favorite Destinations -->
+      <div class="content-section">
+        <div class="section-header">
+          <h2>Destinos Populares</h2>
+          <a routerLink="/destinations" class="view-all">Ver todos</a>
+        </div>
+        
+        <div class="destinations-grid">
+          <div class="destination-card" *ngFor="let destination of favoriteDestinations" 
+               (click)="navigateToDestination(destination.id)">
+            <div class="destination-image">
+              <img [src]="destination.imageUrl" [alt]="destination.name" />
+              <div class="destination-overlay">
+                <button class="btn btn-white btn-sm">
+                  Ver Detalles
+                </button>
+              </div>
+            </div>
+            <div class="destination-content">
+              <h4>{{ destination.name }}</h4>
+              <p>{{ destination.description }}</p>
+              <div class="destination-rating">
+                <div class="category-badge" *ngIf="destination.category">
+                  <span>{{ destination.category }}</span>
+                </div>
+                <div class="price-range" *ngIf="destination.lowSeasonPrice">
+                  <span class="price-label">Desde</span>
+                  <span class="price-amount">${{ destination.lowSeasonPrice | number:'1.0-0' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recommended Hotels -->
+      <div class="content-section">
+        <div class="section-header">
+          <h2>Hoteles Recomendados</h2>
+          <a routerLink="/hotels" class="view-all">Ver todos</a>
+        </div>
+        
+        <div class="hotels-grid">
+          <div class="hotel-card" *ngFor="let hotel of recommendedHotels">
+            <div class="hotel-image">
+              <img [src]="hotel.imageUrl" [alt]="hotel.name" />
+              <div class="hotel-price" *ngIf="hotel.roomTypes && hotel.roomTypes.length > 0">
+                <span>{{ formatCurrency(hotel.roomTypes[0].pricePerNight) }}</span>
+                <small>/noche</small>
+              </div>
+            </div>
+            <div class="hotel-content">
+              <h4>{{ hotel.name }}</h4>
+              <p class="hotel-location">
+                <i class="fas fa-map-marker-alt"></i>
+                {{ hotel.destinationName }}
+              </p>
+              <div class="hotel-rating">
+                <div class="stars">
+                  <i class="fas fa-star" *ngFor="let star of [1,2,3,4,5]; let i = index" 
+                     [class.active]="i < hotel.rating"></i>
+                </div>
+                <span class="rating-text">({{ hotel.rating }})</span>
+              </div>
+              <button class="btn btn-outline-primary btn-sm btn-block" 
+                      (click)="navigateToHotel(hotel.id)">
+                Ver Detalles
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Template -->
+  <ng-template #loadingTemplate>
+    <div class="loading-container">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Cargando tu dashboard...</p>
+      </div>
+    </div>
+  </ng-template>
+</div>

@@ -1,0 +1,181 @@
+.hero {
+  background: var(--gradient-primary);
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 1;
+  }
+
+  .container {
+    position: relative;
+    z-index: 2;
+  }
+}
+
+.hero-content {
+  animation: slideInLeft 1s ease-out;
+}
+
+.hero-carousel {
+  animation: fadeIn 1.5s ease-out;
+}
+
+.benefit-card {
+  transition: var(--transition);
+  border: none !important;
+
+  &:hover {
+    transform: translateY(-10px);
+    box-shadow: var(--shadow-medium) !important;
+
+    .benefit-icon i {
+      transform: scale(1.1);
+      color: var(--accent) !important;
+    }
+  }
+}
+
+.benefit-icon i {
+  transition: var(--transition);
+}
+
+.step-item {
+  padding: 1.5rem;
+  background: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-soft);
+  margin-bottom: 1rem;
+  transition: var(--transition);
+
+  &:hover {
+    transform: translateX(10px);
+    box-shadow: var(--shadow-medium);
+  }
+}
+
+.step-number {
+  min-width: 50px;
+  min-height: 50px;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.destination-card,
+.hotel-card {
+  transition: var(--transition);
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-10px);
+    box-shadow: var(--shadow-medium) !important;
+
+    .card-img-top {
+      transform: scale(1.05);
+    }
+  }
+
+  .card-img-top {
+    transition: var(--transition);
+  }
+}
+
+.testimonial-card {
+  box-shadow: var(--shadow-soft);
+  transition: var(--transition);
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-medium);
+  }
+}
+
+.contact-form {
+  background: white;
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-soft);
+}
+
+.stars i {
+  font-size: 0.875rem;
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .hero {
+    text-align: center;
+
+    .btn {
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+  }
+
+  .step-item {
+    text-align: center;
+    flex-direction: column;
+
+    .step-number {
+      margin-bottom: 1rem;
+    }
+  }
+
+  .benefit-card,
+  .destination-card,
+  .hotel-card {
+    margin-bottom: 1.5rem;
+  }
+}
+
+// Animation classes
+.fade-in {
+  animation: fadeIn 0.8s ease-in;
+}
+
+.slide-in-left {
+  animation: slideInLeft 0.8s ease-out;
+}
+
+@keyframes fadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(30px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+@keyframes slideInLeft {
+  from { 
+    opacity: 0; 
+    transform: translateX(-50px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateX(0); 
+  }
+}

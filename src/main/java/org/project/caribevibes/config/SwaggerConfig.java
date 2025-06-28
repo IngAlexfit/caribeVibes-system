@@ -56,8 +56,8 @@ public class SwaggerConfig {
                 .version("1.0.0")
                 .contact(new Contact()
                         .name("Equipo de Desarrollo Caribe Vibes")
-                        .email("desarrollo@caribedreams.com")
-                        .url("https://www.caribedreams.com"))
+                        .email("desarrollo@caribevibes.com")
+                        .url("https://www.caribevibes.com"))
                 .license(new License()
                         .name("MIT License")
                         .url("https://opensource.org/licenses/MIT"));
@@ -74,7 +74,7 @@ public class SwaggerConfig {
                 .description("Servidor de Desarrollo");
 
         Server productionServer = new Server()
-                .url("https://api.caribedreams.com")
+                .url("https://api.caribevibes.com")
                 .description("Servidor de Producción");
 
         return List.of(developmentServer, productionServer);

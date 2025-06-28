@@ -133,7 +133,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         return UserInfo.builder()
                 .id(user.getId())
                 .email(user.getEmail())
-                .username(user.getUsername())
+                .username(user.getRealUsername()) // Usar el username real
                 .fullName(user.getFullName())
                 .roles(user.getRoleNames())
                 .isActive(user.getIsActive())

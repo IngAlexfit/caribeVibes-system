@@ -1,0 +1,215 @@
+<div class="auth-container">
+  <div class="auth-card register-card">
+    <div class="auth-header">
+      <h2>Crear Cuenta</h2>
+      <p>Únete a la aventura caribeña</p>
+    </div>
+
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="auth-form">
+      <!-- Personal Information -->
+      <div class="form-section">
+        <h3>Información Personal</h3>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="firstName">Nombre</label>
+            <div class="input-wrapper">
+              <i class="fas fa-user"></i>
+              <input
+                type="text"
+                id="firstName"
+                formControlName="firstName"
+                placeholder="Tu nombre"
+                [class.is-invalid]="registerForm.get('firstName')?.touched && registerForm.get('firstName')?.errors"
+              />
+            </div>
+            <div class="error-message" *ngIf="registerForm.get('firstName')?.touched && registerForm.get('firstName')?.errors">
+              {{ getFieldError('firstName') }}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="lastName">Apellido</label>
+            <div class="input-wrapper">
+              <i class="fas fa-user"></i>
+              <input
+                type="text"
+                id="lastName"
+                formControlName="lastName"
+                placeholder="Tu apellido"
+                [class.is-invalid]="registerForm.get('lastName')?.touched && registerForm.get('lastName')?.errors"
+              />
+            </div>
+            <div class="error-message" *ngIf="registerForm.get('lastName')?.touched && registerForm.get('lastName')?.errors">
+              {{ getFieldError('lastName') }}
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="username">Nombre de Usuario</label>
+          <div class="input-wrapper">
+            <i class="fas fa-at"></i>
+            <input
+              type="text"
+              id="username"
+              formControlName="username"
+              placeholder="Elige un nombre de usuario"
+              [class.is-invalid]="registerForm.get('username')?.touched && registerForm.get('username')?.errors"
+            />
+          </div>
+          <div class="error-message" *ngIf="registerForm.get('username')?.touched && registerForm.get('username')?.errors">
+            {{ getFieldError('username') }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Correo Electrónico</label>
+          <div class="input-wrapper">
+            <i class="fas fa-envelope"></i>
+            <input
+              type="email"
+              id="email"
+              formControlName="email"
+              placeholder="tu@email.com"
+              [class.is-invalid]="registerForm.get('email')?.touched && registerForm.get('email')?.errors"
+            />
+          </div>
+          <div class="error-message" *ngIf="registerForm.get('email')?.touched && registerForm.get('email')?.errors">
+            {{ getFieldError('email') }}
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="password">Contraseña</label>
+            <div class="input-wrapper">
+              <i class="fas fa-lock"></i>
+              <input
+                [type]="showPassword ? 'text' : 'password'"
+                id="password"
+                formControlName="password"
+                placeholder="Mínimo 6 caracteres"
+                [class.is-invalid]="registerForm.get('password')?.touched && registerForm.get('password')?.errors"
+              />
+              <button
+                type="button"
+                class="password-toggle"
+                (click)="togglePasswordVisibility()"
+              >
+                <i [class]="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+              </button>
+            </div>
+            <div class="error-message" *ngIf="registerForm.get('password')?.touched && registerForm.get('password')?.errors">
+              {{ getFieldError('password') }}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="confirmPassword">Confirmar Contraseña</label>
+            <div class="input-wrapper">
+              <i class="fas fa-lock"></i>
+              <input
+                [type]="showConfirmPassword ? 'text' : 'password'"
+                id="confirmPassword"
+                formControlName="confirmPassword"
+                placeholder="Repite la contraseña"
+                [class.is-invalid]="registerForm.get('confirmPassword')?.touched && registerForm.get('confirmPassword')?.errors"
+              />
+              <button
+                type="button"
+                class="password-toggle"
+                (click)="toggleConfirmPasswordVisibility()"
+              >
+                <i [class]="showConfirmPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+              </button>
+            </div>
+            <div class="error-message" *ngIf="registerForm.get('confirmPassword')?.touched && registerForm.get('confirmPassword')?.errors">
+              {{ getFieldError('confirmPassword') }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interests -->
+      <div class="form-section">
+        <h3>Intereses <span class="optional">(Opcional)</span></h3>
+        <p class="section-description">Selecciona tus intereses para personalizar tu experiencia</p>
+        
+        <div class="checkbox-grid">
+          <div *ngFor="let interest of interests" class="checkbox-item">
+            <input
+              type="checkbox"
+              [id]="'interest-' + interest"
+              [checked]="isInterestSelected(interest)"
+              (change)="onInterestChange(interest, $event)"
+            />
+            <label [for]="'interest-' + interest">{{ interest }}</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Adventures -->
+      <div class="form-section">
+        <h3>Aventuras <span class="optional">(Opcional)</span></h3>
+        <p class="section-description">¿Qué actividades te emocionan más?</p>
+        
+        <div class="checkbox-grid">
+          <div *ngFor="let adventure of adventures" class="checkbox-item">
+            <input
+              type="checkbox"
+              [id]="'adventure-' + adventure"
+              [checked]="isAdventureSelected(adventure)"
+              (change)="onAdventureChange(adventure, $event)"
+            />
+            <label [for]="'adventure-' + adventure">{{ adventure }}</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Terms and Conditions -->
+      <div class="form-group">
+        <div class="checkbox-item terms">
+          <input
+            type="checkbox"
+            id="acceptTerms"
+            formControlName="acceptTerms"
+            [class.is-invalid]="registerForm.get('acceptTerms')?.touched && registerForm.get('acceptTerms')?.errors"
+          />
+          <label for="acceptTerms">
+            Acepto los <a href="/terms" target="_blank">términos y condiciones</a> 
+            y la <a href="/privacy" target="_blank">política de privacidad</a>
+          </label>
+        </div>
+        <div class="error-message" *ngIf="registerForm.get('acceptTerms')?.touched && registerForm.get('acceptTerms')?.errors">
+          {{ getFieldError('acceptTerms') }}
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button
+          type="submit"
+          class="btn btn-primary btn-block"
+          [disabled]="isLoading || registerForm.invalid"
+        >
+          <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+          {{ isLoading ? 'Creando cuenta...' : 'Crear Cuenta' }}
+        </button>
+      </div>
+    </form>
+
+    <div class="auth-footer">
+      <p>
+        ¿Ya tienes una cuenta? 
+        <a routerLink="/auth/login" class="login-link">Inicia sesión aquí</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Background decoration -->
+<div class="auth-background">
+  <div class="wave wave-1"></div>
+  <div class="wave wave-2"></div>
+  <div class="wave wave-3"></div>
+</div>

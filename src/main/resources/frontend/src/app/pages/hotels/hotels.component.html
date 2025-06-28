@@ -1,0 +1,532 @@
+<div class="hotels-container">
+  <!-- Vista de Lista -->
+  <div *ngIf="!isDetailView">
+    <div class="hotels-header">
+      <h1>Hoteles Disponibles</h1>
+      <p *ngIf="!destinationId">Descubre los mejores hoteles en el Caribe</p>
+      <p *ngIf="destinationId">Hoteles en este destino</p>
+    </div>
+
+    <!-- Destination Filter Indicator -->
+    <div *ngIf="destinationId" class="destination-filter-alert">
+      <div class="alert alert-info d-flex justify-content-between align-items-center">
+        <span>
+          <i class="fas fa-filter me-2"></i>
+          Mostrando hoteles en: <strong>{{getSelectedDestinationName()}}</strong>
+        </span>
+        <button class="btn btn-outline-primary btn-sm" (click)="clearFilters()">
+          <i class="fas fa-times me-1"></i>
+          Ver todos los hoteles
+        </button>
+      </div>
+    </div>
+
+    <!-- Enhanced Filters Section -->
+    <div class="filters-container">
+      <!-- Mobile Toggle Button -->
+      <div class="mobile-filter-toggle d-lg-none">
+        <button class="btn btn-outline-primary w-100" (click)="toggleFilters()">
+          <i class="fas fa-filter me-2"></i>
+          Filtros
+          <span class="filter-count" *ngIf="getActiveFiltersCount() > 0">({{getActiveFiltersCount()}})</span>
+          <i class="fas" [class.fa-chevron-down]="!filtersExpanded" [class.fa-chevron-up]="filtersExpanded"></i>
+        </button>
+      </div>
+
+      <!-- Filters Panel -->
+      <div class="filters-panel" [class.expanded]="filtersExpanded">
+        <div class="filters-header">
+          <h3>
+            <i class="fas fa-filter me-2"></i>
+            Filtrar Hoteles
+          </h3>
+          <div class="filters-actions">
+            <span class="active-filters" *ngIf="getActiveFiltersCount() > 0">
+              {{getActiveFiltersCount()}} filtro(s) activo(s)
+            </span>
+            <button class="btn btn-link btn-sm" (click)="clearFilters()" *ngIf="getActiveFiltersCount() > 0">
+              <i class="fas fa-times-circle me-1"></i>
+              Limpiar todos
+            </button>
+          </div>
+        </div>
+
+        <div class="filters-grid">
+          <!-- Search Filter -->
+          <div class="filter-group">
+            <label class="filter-label">
+              <i class="fas fa-search me-2"></i>
+              Buscar
+            </label>
+            <div class="input-group">
+              <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="filterHotels()"
+                placeholder="Nombre o descripción..." class="form-control search-input">
+              <button class="btn btn-outline-secondary" *ngIf="searchTerm" (click)="searchTerm = ''; filterHotels()">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Destination Filter -->
+          <div class="filter-group">
+            <label class="filter-label">
+              <i class="fas fa-map-marker-alt me-2"></i>
+              Destino
+            </label>
+            <select [(ngModel)]="selectedDestinationFilter" 
+                    (ngModelChange)="onDestinationFilterChange()"
+                    class="form-select destination-select">
+              <option [ngValue]="null">Todos los destinos</option>
+              <option *ngFor="let destination of destinations" 
+                      [ngValue]="destination.id">
+                {{destination.name}}
+              </option>
+            </select>
+            <small class="text-muted mt-1" *ngIf="selectedDestinationFilter">
+              <i class="fas fa-info-circle me-1"></i>
+              Mostrando hoteles en {{getSelectedDestinationName()}}
+            </small>
+          </div>
+
+          <!-- Rating Filter -->
+          <div class="filter-group">
+            <label class="filter-label">
+              <i class="fas fa-star me-2"></i>
+              Calificación mínima
+            </label>
+            <select [(ngModel)]="selectedRating" (ngModelChange)="filterHotels()" class="form-select rating-select">
+              <option value="0">Todas las calificaciones</option>
+              <option value="3">3+ estrellas</option>
+              <option value="4">4+ estrellas</option>
+              <option value="5">5 estrellas</option>
+            </select>
+          </div>
+
+          <!-- Price Filter -->
+          <div class="filter-group">
+            <label class="filter-label">
+              <i class="fas fa-dollar-sign me-2"></i>
+              Precio máximo: {{formatCurrency(priceRange.max)}}
+            </label>
+            <div class="price-slider-container">
+              <input type="range" [(ngModel)]="priceRange.max" (ngModelChange)="filterHotels()" min="100" max="1000000"
+                step="50" class="form-range price-slider">
+              <div class="price-range-labels">
+                <span>{{formatCurrency(100)}}</span>
+                <span>{{formatCurrency(1000000)}}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Results Summary -->
+        <div class="results-summary" *ngIf="!isLoading">
+          <span class="results-count">
+            <i class="fas fa-hotel me-2"></i>
+            {{filteredHotels.length}} hotel(es) encontrado(s)
+            <span *ngIf="hotels.length !== filteredHotels.length" class="text-muted">
+              de {{hotels.length}} total(es)
+            </span>
+          </span>
+          <span *ngIf="selectedDestinationFilter" class="destination-indicator">
+            <i class="fas fa-map-marker-alt me-1"></i>
+            {{getSelectedDestinationName()}}
+          </span>
+          <!-- Debug info (remove in production) -->
+          <small class="debug-info text-muted ms-3" style="font-size: 0.75rem;">
+            Debug: destinationId={{destinationId}}, selectedFilter={{selectedDestinationFilter}}
+          </small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-container">
+      <app-loading></app-loading>
+    </div>
+
+    <!-- Hotels Grid -->
+    <div *ngIf="!isLoading" class="hotels-grid">
+      <div *ngFor="let hotel of filteredHotels" class="hotel-card" (click)="viewHotelDetails(hotel.id)">
+        <div class="hotel-image">
+          <img [src]="hotel.imageUrl || '/assets/images/default-hotel.jpg'" [alt]="hotel.name" class="hotel-img">
+          <div class="hotel-rating">
+            <span class="stars">
+              <i *ngFor="let star of [].constructor(hotel.rating || 0)" class="fas fa-star"></i>
+            </span>
+            <span class="rating-number">{{hotel.rating}}</span>
+          </div>
+        </div>
+
+        <div class="hotel-info">
+          <h3 class="hotel-name">{{hotel.name}}</h3>
+          <p class="hotel-location">
+            <i class="fas fa-map-marker-alt"></i>
+            {{hotel.address}}
+          </p>
+          <p class="hotel-description">{{hotel.description}}</p>
+
+          <div class="hotel-footer">
+            <div class="price-info">
+              <span class="price">${{getMinPrice(hotel)}}</span>
+              <span class="price-unit">por noche</span>
+            </div>
+            <button class="book-btn" (click)="viewHotelDetails(hotel.id)">
+              Ver detalles
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- No Results -->
+    <div *ngIf="!isLoading && filteredHotels.length === 0" class="no-results">
+      <i class="fas fa-hotel"></i>
+      <h3>No se encontraron hoteles</h3>
+      <div *ngIf="selectedDestinationFilter; else generalNoResults">
+        <p>No hay hoteles disponibles en <strong>{{getSelectedDestinationName()}}</strong></p>
+        <button class="btn btn-primary mt-3" (click)="clearFilters()">
+          <i class="fas fa-globe-americas me-2"></i>
+          Ver hoteles en todos los destinos
+        </button>
+      </div>
+      <ng-template #generalNoResults>
+        <p>Intenta ajustar tus filtros de búsqueda</p>
+        <button class="btn btn-outline-primary mt-3" (click)="clearFilters()" *ngIf="getActiveFiltersCount() > 0">
+          <i class="fas fa-eraser me-2"></i>
+          Limpiar filtros
+        </button>
+      </ng-template>
+      <!-- Debug info -->
+      <small class="debug-info text-muted mt-3" style="font-size: 0.75rem;">
+        Debug: destinationId={{destinationId}}, selectedFilter={{selectedDestinationFilter}}, totalHotels={{hotels.length}}
+      </small>
+    </div>
+  </div>
+
+  <!-- Vista de Detalle Compacta y Moderna -->
+  <div *ngIf="isDetailView && selectedHotel && !isLoading" class="hotel-detail-new">
+
+    <!-- Header de navegación limpio -->
+    <div class="detail-nav-header">
+      <div class="nav-container">
+        <button class="btn-back-new" (click)="goBackToList()">
+          <i class="fas fa-arrow-left"></i>
+          <span>Volver a Hoteles</span>
+        </button>
+
+        <div class="nav-actions">
+          <button class="btn-action-new" title="Compartir">
+            <i class="fas fa-share-alt"></i>
+          </button>
+          <button class="btn-action-new btn-favorite-new" title="Agregar a favoritos">
+            <i class="fas fa-heart"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hero principal rediseñado -->
+    <div class="hero-section-new">
+      <div class="hero-container">
+
+        <!-- Grid principal: Imagen + Info -->
+        <div class="hero-main-grid">
+
+          <!-- Imagen principal -->
+          <div class="hero-image-section">
+            <div class="main-image-container">
+              <img [src]="selectedHotel.imageUrl || '/assets/images/default-hotel.jpg'" [alt]="selectedHotel.name"
+                class="hero-image-new">
+              <div class="image-overlay">
+                <button class="gallery-btn">
+                  <i class="fas fa-images"></i>
+                  <span>Ver más fotos</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Información principal -->
+          <div class="hero-info-section">
+
+            <!-- Badges superiores -->
+            <div class="hotel-badges-new">
+              <span class="rating-badge">
+                <i class="fas fa-star"></i>
+                {{ selectedHotel.rating }}/5
+              </span>
+              <span class="stars-badge">
+                <span *ngFor="let star of [].constructor(selectedHotel.stars || 4)" class="star">
+                  <i class="fas fa-star"></i>
+                </span>
+              </span>
+            </div>
+
+            <!-- Título y ubicación -->
+            <div class="hotel-header-info">
+              <h1 class="hotel-title-new">{{ selectedHotel.name }}</h1>
+              <div class="location-info">
+                <i class="fas fa-map-marker-alt"></i>
+                <span class="destination">{{ selectedHotel.destinationName }}</span>
+                <span class="separator">•</span>
+                <span class="address">{{ selectedHotel.address }}</span>
+              </div>
+            </div>
+
+            <!-- Descripción breve -->
+            <div class="hotel-summary">
+              <p>{{ selectedHotel.description | slice:0:200 }}{{ selectedHotel.description.length > 200 ? '...' : '' }}
+              </p>
+            </div>
+
+            <!-- Precio y acciones principales -->
+            <div class="booking-section">
+              <div class="price-info-new">
+                <div class="price-label">Desde</div>
+                <div class="price-amount">{{ formatCurrency(getMinPrice(selectedHotel)) }}</div>
+                <div class="price-unit">por noche + impuestos</div>
+              </div>
+
+              <div class="action-buttons">
+                <button class="btn-primary-new btn-reserve">
+                  <i class="fas fa-calendar-check"></i>
+                  <span>Reservar</span>
+                </button>
+                <button class="btn-secondary-new btn-contact">
+                  <i class="fas fa-phone"></i>
+                  <span>Contactar</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Cards de información rápida -->
+        <div class="quick-info-cards">
+          <div class="info-card-new">
+            <i class="fas fa-phone-alt"></i>
+            <div class="card-content-new">
+              <span class="label">Teléfono</span>
+              <span class="value">{{ selectedHotel.phoneNumber || '+57 (1) 234-5678' }}</span>
+            </div>
+          </div>
+
+          <div class="info-card-new" *ngIf="selectedHotel.email">
+            <i class="fas fa-envelope"></i>
+            <div class="card-content-new">
+              <span class="label">Email</span>
+              <span class="value">{{ selectedHotel.email }}</span>
+            </div>
+          </div>
+
+          <div class="info-card-new">
+            <i class="fas fa-clock"></i>
+            <div class="card-content-new">
+              <span class="label">Check-in / Check-out</span>
+              <span class="value">15:00 / 11:00</span>
+            </div>
+          </div>
+
+          <div class="info-card-new" *ngIf="selectedHotel.websiteUrl">
+            <i class="fas fa-globe"></i>
+            <div class="card-content-new">
+              <span class="label">Sitio Web</span>
+              <a [href]="selectedHotel.websiteUrl" target="_blank" class="link-value">Visitar sitio</a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Contenido principal: Info detallada + Sidebar sticky -->
+    <div class="content-section-new">
+      <div class="content-container">
+
+        <!-- Contenido principal -->
+        <div class="main-content-new">
+
+          <!-- Sección: Acerca del hotel -->
+          <section class="content-block">
+            <div class="block-header">
+              <h2>
+                <i class="fas fa-info-circle"></i>
+                Acerca del Hotel
+              </h2>
+            </div>
+            <div class="block-content">
+              <p class="full-description">{{ selectedHotel.description }}</p>
+            </div>
+          </section>
+
+          <!-- Sección: Habitaciones -->
+          <section class="content-block" *ngIf="selectedHotel.roomTypes && selectedHotel.roomTypes.length > 0">
+            <div class="block-header">
+              <h2>
+                <i class="fas fa-bed"></i>
+                Habitaciones Disponibles
+              </h2>
+              <span class="block-subtitle">{{ selectedHotel.roomTypes.length }} tipo(s) de habitación</span>
+            </div>
+            <div class="block-content">
+              <div class="rooms-grid-new">
+
+                <div class="room-card-new" *ngFor="let room of selectedHotel.roomTypes; let i = index">
+                  <div class="room-layout">
+
+                    <!-- Imagen de habitación -->
+                    <div class="room-image-new">
+                      <img [src]="room.imageUrl || '/assets/images/default-room.jpg'" [alt]="room.name"
+                        class="room-img">
+                      <div class="room-number">{{ i + 1 }}</div>
+                    </div>
+
+                    <!-- Info de habitación -->
+                    <div class="room-details">
+                      <div class="room-header">
+                        <h3 class="room-name">{{ room.name }}</h3>
+                        <div class="room-price">
+                          <span class="price">{{ formatCurrency(room.pricePerNight) }}</span>
+                          <span class="period">/noche</span>
+                        </div>
+                      </div>
+
+                      <p class="room-description">{{ room.description }}</p>
+
+                      <div class="room-meta">
+                        <div class="capacity">
+                          <i class="fas fa-users"></i>
+                          <span>{{ room.capacity || 2 }} huéspedes</span>
+                        </div>
+                      </div>
+
+                      <!-- Amenidades -->
+                      <div class="amenities-section" *ngIf="room.amenities && room.amenities.length > 0">
+                        <div class="amenities-grid">
+                          <span class="amenity-tag" *ngFor="let amenity of room.amenities.slice(0, 4)">
+                            {{ amenity }}
+                          </span>
+                          <span class="amenity-more" *ngIf="room.amenities.length > 4">
+                            +{{ room.amenities.length - 4 }} más
+                          </span>
+                        </div>
+                      </div>
+
+                      <button class="btn-select-room">
+                        <i class="fas fa-check"></i>
+                        <span>Seleccionar habitación</span>
+                      </button>
+
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </section>
+
+        </div>
+
+        <!-- Sidebar sticky -->
+        <aside class="sidebar-new">
+
+          <!-- Card de reserva -->
+          <div class="sidebar-card booking-card">
+            <div class="card-header">
+              <h3>Reserva Ahora</h3>
+              <span class="best-price-badge">¡Mejor precio!</span>
+            </div>
+
+            <div class="price-display">
+              <div class="price-main">
+                <span class="from">Desde</span>
+                <span class="amount">{{ formatCurrency(getMinPrice(selectedHotel)) }}</span>
+              </div>
+              <div class="price-note">por noche + impuestos</div>
+            </div>
+
+            <div class="booking-actions">
+              <button class="btn-book-now">
+                <i class="fas fa-calendar-plus"></i>
+                <span>Reservar Ahora</span>
+              </button>
+              <button class="btn-quote">
+                <i class="fas fa-calculator"></i>
+                <span>Solicitar Cotización</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Card de contacto -->
+          <div class="sidebar-card contact-card">
+            <div class="card-header">
+              <h3>
+                <i class="fas fa-headset"></i>
+                Contacto Directo
+              </h3>
+            </div>
+
+            <div class="contact-options">
+              <button class="contact-option">
+                <i class="fas fa-phone-alt"></i>
+                <div class="contact-info">
+                  <span class="contact-label">Llamar</span>
+                  <span class="contact-value">{{ selectedHotel.phoneNumber || '+57 (1) 234-5678' }}</span>
+                </div>
+              </button>
+
+              <button class="contact-option" *ngIf="selectedHotel.email">
+                <i class="fas fa-envelope"></i>
+                <div class="contact-info">
+                  <span class="contact-label">Email</span>
+                  <span class="contact-value">{{ selectedHotel.email }}</span>
+                </div>
+              </button>
+
+              <button class="contact-option">
+                <i class="fas fa-comments"></i>
+                <div class="contact-info">
+                  <span class="contact-label">Chat en vivo</span>
+                  <span class="contact-value">Disponible 24/7</span>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Card de información -->
+          <div class="sidebar-card info-card">
+            <div class="card-header">
+              <h3>
+                <i class="fas fa-info-circle"></i>
+                Información
+              </h3>
+            </div>
+
+            <div class="info-list">
+              <div class="info-item">
+                <span class="info-label">Check-in</span>
+                <span class="info-value">15:00</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Check-out</span>
+                <span class="info-value">11:00</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Cancelación</span>
+                <span class="info-value">Gratis hasta 24h antes</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">WiFi</span>
+                <span class="info-value">Gratis en todo el hotel</span>
+              </div>
+            </div>
+          </div>
+
+        </aside>
+
+      </div>
+    </div>
+
+  </div>

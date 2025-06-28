@@ -2,6 +2,8 @@ package org.project.caribevibes.controller;
 
 import org.project.caribevibes.dto.response.HotelResponseDTO;
 import org.project.caribevibes.dto.response.RoomTypeResponseDTO;
+import org.project.caribevibes.dto.response.DestinationBasicDTO;
+import org.project.caribevibes.dto.response.CountryBasicDTO;
 import org.project.caribevibes.entity.hotel.Hotel;
 import org.project.caribevibes.entity.hotel.RoomType;
 import org.project.caribevibes.service.hotel.HotelService;
@@ -33,7 +35,6 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping("/api/hotels")
-@CrossOrigin(origins = "*", maxAge = 3600)
 public class HotelController {
 
     private static final Logger logger = LoggerFactory.getLogger(HotelController.class);
@@ -329,8 +330,6 @@ public class HotelController {
      * @return DTO de respuesta del hotel
      */
     private HotelResponseDTO convertToHotelResponseDTO(Hotel hotel) {
-        // Aquí iría la lógica de conversión completa
-        // Por ahora, una versión simplificada
         HotelResponseDTO dto = new HotelResponseDTO();
         dto.setId(hotel.getId());
         dto.setName(hotel.getName());
@@ -340,17 +339,17 @@ public class HotelController {
         dto.setEmail(hotel.getEmail());
         dto.setWebsite(hotel.getWebsiteUrl());
         dto.setStars(hotel.getStars());
-        // El precio base no está en la entidad Hotel
-        // dto.setBasePrice(null);
+        // Mapear el campo basePrice de la entidad Hotel
+        dto.setBasePrice(hotel.getBasePrice());
         // Convertir List<String> a String - utilizando String.join
         dto.setAmenities(hotel.getAmenities() != null ? String.join(", ", hotel.getAmenities()) : null);
         dto.setImageUrl(hotel.getImageUrl());
-        // La latitud y longitud no están en la entidad Hotel
-        // dto.setLatitude(null);
-        // dto.setLongitude(null);
-        // Convertir las políticas de check-in/out a LocalTime (si es necesario)
-        // dto.setCheckInTime(null);
-        // dto.setCheckOutTime(null);
+        // La latitud y longitud no están en la entidad Hotel actualmente
+        dto.setLatitude(null);
+        dto.setLongitude(null);
+        // Las políticas de check-in/out no se manejan como LocalTime en la entidad actual
+        dto.setCheckInTime(null);
+        dto.setCheckOutTime(null);
         // Combinar políticas en un solo string
         String policies = String.join("\n\n", 
             hotel.getCheckinPolicy() != null ? hotel.getCheckinPolicy() : "",
@@ -358,9 +357,39 @@ public class HotelController {
             hotel.getCancellationPolicy() != null ? hotel.getCancellationPolicy() : ""
         ).trim();
         dto.setPolicies(policies.isEmpty() ? null : policies);
+        
+        // Mapear el destino si está cargado
+        if (hotel.getDestination() != null) {
+            DestinationBasicDTO destinationDTO = new DestinationBasicDTO();
+            destinationDTO.setId(hotel.getDestination().getId());
+            destinationDTO.setName(hotel.getDestination().getName());
+            destinationDTO.setLocation(hotel.getDestination().getLocation());
+            destinationDTO.setImageUrl(hotel.getDestination().getImageUrl());
+            
+            // Mapear el país si está cargado
+            if (hotel.getDestination().getCountry() != null) {
+                CountryBasicDTO countryDTO = new CountryBasicDTO();
+                countryDTO.setId(hotel.getDestination().getCountry().getId());
+                countryDTO.setName(hotel.getDestination().getCountry().getName());
+                countryDTO.setCode(hotel.getDestination().getCountry().getCode());
+                countryDTO.setContinent(hotel.getDestination().getCountry().getContinent());
+                countryDTO.setCurrency(hotel.getDestination().getCountry().getCurrency());
+                countryDTO.setPhonePrefix(hotel.getDestination().getCountry().getPhonePrefix());
+                destinationDTO.setCountry(countryDTO);
+            }
+            
+            dto.setDestination(destinationDTO);
+        }
+
+        // Mapear los tipos de habitaciones si están cargados
+        if (hotel.getRoomTypes() != null && !hotel.getRoomTypes().isEmpty()) {
+            List<RoomTypeResponseDTO> roomTypeDTOs = hotel.getRoomTypes().stream()
+                    .map(this::convertToRoomTypeResponseDTO)
+                    .collect(Collectors.toList());
+            dto.setRoomTypes(roomTypeDTOs);
+        }
 
         return dto;
-
     }
 
     /**

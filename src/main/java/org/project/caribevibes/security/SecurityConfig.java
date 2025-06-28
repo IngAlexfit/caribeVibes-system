@@ -3,6 +3,7 @@ package org.project.caribevibes.security;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -72,7 +73,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/destinations/**").permitAll()
                 .requestMatchers("/api/hotels/**").permitAll()
                 .requestMatchers("/api/experiences/**").permitAll()
-                .requestMatchers("/api/contact/create").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/contact").permitAll() // Solo POST para crear contacto
+                .requestMatchers("/api/contact/health").permitAll() // Health check público
                 
                 // Endpoints de documentación (Swagger/OpenAPI)
                 .requestMatchers(
@@ -91,8 +93,13 @@ public class SecurityConfig {
                 .requestMatchers("/api/static/**", "/api/assets/**", "/api/images/**").permitAll()
                 
                 // Endpoints protegidos para usuarios autenticados
-                .requestMatchers("/api/bookings/**").hasRole("USER")
-                .requestMatchers("/api/users/profile/**").hasRole("USER")
+                .requestMatchers("/api/bookings/**").hasRole("CLIENT")
+                .requestMatchers("/api/users/profile/**").hasRole("CLIENT")
+                
+                // Endpoints de contacto (solo GET, PUT, DELETE requieren ADMIN)
+                .requestMatchers(HttpMethod.GET, "/api/contact/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/contact/**").hasRole("ADMIN") 
+                .requestMatchers(HttpMethod.DELETE, "/api/contact/**").hasRole("ADMIN")
                 
                 // Endpoints de administración
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
@@ -124,6 +131,7 @@ public class SecurityConfig {
      * @return Proveedor de autenticación configurado
      */
     @Bean
+    @SuppressWarnings("deprecation")
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(userDetailsService);

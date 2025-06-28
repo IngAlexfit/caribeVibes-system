@@ -7,6 +7,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * Configuración CORS para el sistema Caribe Vibes.
@@ -30,45 +31,34 @@ public class CorsConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // Orígenes permitidos (en producción debería ser más restrictivo)
-        configuration.setAllowedOriginPatterns(Arrays.asList(
-            "http://localhost:*",
-            "https://localhost:*",
-            "http://127.0.0.1:*",
-            "https://127.0.0.1:*",
-            "file://*",
-            "capacitor://*",
-            "ionic://*"
-        ));
+        // Permitir todos los orígenes para desarrollo (usar específicos en producción)
+        configuration.setAllowedOriginPatterns(Collections.singletonList("*"));
         
         // Métodos HTTP permitidos
         configuration.setAllowedMethods(Arrays.asList(
             "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"
         ));
         
-        // Headers permitidos
-        configuration.setAllowedHeaders(Arrays.asList(
-            "Authorization",
-            "Content-Type",
-            "Accept",
-            "Origin",
-            "X-Requested-With",
-            "Access-Control-Request-Method",
-            "Access-Control-Request-Headers"
-        ));
+        // Permitir todos los headers
+        configuration.setAllowedHeaders(Collections.singletonList("*"));
         
-        // Headers expuestos
+        // Headers expuestos (que el cliente puede leer)
         configuration.setExposedHeaders(Arrays.asList(
             "Access-Control-Allow-Origin",
             "Access-Control-Allow-Credentials",
+            "Access-Control-Allow-Methods",
+            "Access-Control-Allow-Headers",
             "Authorization",
-            "Content-Disposition"
+            "Content-Disposition",
+            "Content-Type",
+            "Content-Length",
+            "Cache-Control"
         ));
         
         // Permitir credenciales
         configuration.setAllowCredentials(true);
         
-        // Tiempo máximo de cache para la respuesta pre-flight
+        // Tiempo máximo de cache para la respuesta pre-flight (1 hora)
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

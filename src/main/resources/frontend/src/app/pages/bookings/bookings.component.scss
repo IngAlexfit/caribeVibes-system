@@ -1,0 +1,340 @@
+@import '../../shared/styles/variables';
+@import '../../shared/styles/mixins';
+
+.bookings-container {
+  padding: 30px;
+  min-height: 100vh;
+  background: $bg-light;
+
+  @include mobile {
+    padding: 15px;
+  }
+}
+
+.bookings-header {
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 60px 0;
+  background: $gradient-primary;
+  color: white;
+  border-radius: 15px;
+
+  h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+
+    @include mobile {
+      font-size: 2rem;
+    }
+  }
+
+  p {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    margin: 0;
+  }
+}
+
+.filters-section {
+  background: white;
+  padding: 25px;
+  border-radius: 15px;
+  box-shadow: $shadow-md;
+  margin-bottom: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  @include mobile {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+
+  .status-filter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    label {
+      font-weight: 600;
+      color: $text-primary;
+      margin: 0;
+    }
+
+    .status-select {
+      padding: 8px 16px;
+      border: 2px solid $border-light;
+      border-radius: $border-radius-sm;
+      font-size: 1rem;
+      background: white;
+      min-width: 200px;
+
+      &:focus {
+        outline: none;
+        border-color: $primary-color;
+      }
+    }
+  }
+
+  .filter-actions {
+    display: flex;
+    gap: 10px;
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: $border-radius-sm;
+      font-weight: 600;
+      transition: all 0.3s ease;
+
+      i {
+        margin-right: 5px;
+      }
+    }
+  }
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+}
+
+.bookings-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.booking-card {
+  background: white;
+  border-radius: 15px;
+  box-shadow: $shadow-md;
+  padding: 25px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-lg;
+  }
+
+  .booking-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid $border-light;
+
+    @include mobile {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .booking-id {
+      font-size: 1.1rem;
+      color: $text-primary;
+    }
+
+    .status-badge {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+
+      &.status-pending {
+        background: rgba($warning-color, 0.1);
+        color: $warning-color;
+      }
+
+      &.status-confirmed {
+        background: rgba($info-color, 0.1);
+        color: $info-color;
+      }
+
+      &.status-completed {
+        background: rgba($success-color, 0.1);
+        color: $success-color;
+      }
+
+      &.status-cancelled {
+        background: rgba($danger-color, 0.1);
+        color: $danger-color;
+      }
+
+      &.badge-pending {
+        background: rgba($warning-color, 0.1);
+        color: $warning-color;
+      }
+
+      &.badge-success {
+        background: rgba($success-color, 0.1);
+        color: $success-color;
+      }
+
+      &.badge-warning {
+        background: rgba($warning-color, 0.1);
+        color: $warning-color;
+      }
+
+      &.badge-danger {
+        background: rgba($danger-color, 0.1);
+        color: $danger-color;
+      }
+
+      &.badge-info {
+        background: rgba($info-color, 0.1);
+        color: $info-color;
+      }
+
+      &.badge-secondary {
+        background: rgba($text-secondary, 0.1);
+        color: $text-secondary;
+      }
+    }
+  }
+
+  .booking-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+
+    @include mobile {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 20px;
+    }
+
+    .booking-info {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+
+      .info-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: $text-secondary;
+
+        i {
+          color: $primary-color;
+          width: 16px;
+        }
+
+        span {
+          font-size: 0.95rem;
+        }
+      }
+    }
+
+    .booking-actions {
+      display: flex;
+      gap: 10px;
+
+      @include mobile {
+        justify-content: flex-end;
+      }
+
+      .btn {
+        padding: 8px 16px;
+        border-radius: $border-radius-sm;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+
+        i {
+          margin-right: 5px;
+        }
+      }
+    }
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 80px 20px;
+  color: $text-secondary;
+
+  i {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    color: $primary-color;
+    opacity: 0.5;
+  }
+
+  h3 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    color: $text-primary;
+  }
+
+  p {
+    font-size: 1.1rem;
+    margin-bottom: 30px;
+  }
+
+  .btn {
+    padding: 12px 24px;
+    border-radius: $border-radius-sm;
+    font-weight: 600;
+    transition: all 0.3s ease;
+
+    i {
+      margin-right: 8px;
+    }
+  }
+}
+
+// Button utilities
+.btn-sm {
+  font-size: 0.85rem;
+  padding: 6px 12px;
+}
+
+.btn-outline-primary {
+  border: 2px solid $primary-color;
+  color: $primary-color;
+  background: transparent;
+
+  &:hover {
+    background: $primary-color;
+    color: white;
+  }
+}
+
+.btn-outline-secondary {
+  border: 2px solid $text-secondary;
+  color: $text-secondary;
+  background: transparent;
+
+  &:hover {
+    background: $text-secondary;
+    color: white;
+  }
+}
+
+.btn-outline-danger {
+  border: 2px solid $danger-color;
+  color: $danger-color;
+  background: transparent;
+
+  &:hover {
+    background: $danger-color;
+    color: white;
+  }
+}
+
+.btn-primary {
+  background: $primary-color;
+  color: white;
+  border: 2px solid $primary-color;
+
+  &:hover {
+    background: darken($primary-color, 10%);
+    border-color: darken($primary-color, 10%);
+  }
+}

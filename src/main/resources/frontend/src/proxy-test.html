@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Proxy</title>
+    <script>
+        async function testProxy() {
+            console.log('Testing proxy configuration...');
+            
+            try {
+                // Test básico al endpoint de salud
+                const response = await fetch('/api/test', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response URL:', response.url);
+                
+                if (response.ok) {
+                    const data = await response.text();
+                    console.log('Response data:', data);
+                    document.getElementById('result').innerHTML = 'SUCCESS: Proxy working!';
+                } else {
+                    console.log('Response not ok:', response.status);
+                    document.getElementById('result').innerHTML = 'ERROR: ' + response.status;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('result').innerHTML = 'ERROR: ' + error.message;
+            }
+        }
+        
+        async function testAuthRegister() {
+            console.log('Testing auth register endpoint...');
+            
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        firstName: 'Test',
+                        lastName: 'User',
+                        username: 'testuser',
+                        email: 'test@test.com',
+                        password: 'password123'
+                    })
+                });
+                
+                console.log('Auth Response status:', response.status);
+                console.log('Auth Response URL:', response.url);
+                
+                const data = await response.text();
+                console.log('Auth Response data:', data);
+                
+                document.getElementById('authResult').innerHTML = 'Status: ' + response.status + '<br>URL: ' + response.url;
+            } catch (error) {
+                console.error('Auth Error:', error);
+                document.getElementById('authResult').innerHTML = 'ERROR: ' + error.message;
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Proxy Test Page</h1>
+    <button onclick="testProxy()">Test Basic Proxy</button>
+    <div id="result"></div>
+    
+    <br><br>
+    
+    <button onclick="testAuthRegister()">Test Auth Register</button>
+    <div id="authResult"></div>
+    
+    <br><br>
+    
+    <p>Current URL: <span id="currentUrl"></span></p>
+    <script>
+        document.getElementById('currentUrl').textContent = window.location.href;
+    </script>
+</body>
+</html>

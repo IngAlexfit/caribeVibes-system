@@ -1,0 +1,96 @@
+<div class="bookings-container">
+  <div class="bookings-header">
+    <h1>Mis Reservas</h1>
+    <p>Administra todas tus reservas de viaje</p>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-section">
+    <div class="status-filter">
+      <label for="statusSelect">Filtrar por estado:</label>
+      <select id="statusSelect" 
+              [(ngModel)]="selectedStatus" 
+              (ngModelChange)="onStatusChange()" 
+              class="status-select">
+        <option *ngFor="let option of statusOptions" 
+                [value]="option.value">
+          {{option.label}}
+        </option>
+      </select>
+    </div>
+    
+    <div class="filter-actions">
+      <button class="btn btn-outline-secondary" (click)="clearFilters()">
+        <i class="fas fa-times"></i>
+        Limpiar filtros
+      </button>
+      <button class="btn btn-primary" (click)="refreshBookings()">
+        <i class="fas fa-sync-alt"></i>
+        Actualizar
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <app-loading></app-loading>
+  </div>
+
+  <!-- Bookings List -->
+  <div *ngIf="!isLoading" class="bookings-content">
+    <div *ngFor="let booking of filteredBookings" class="booking-card">
+      <div class="booking-header">
+        <div class="booking-id">
+          <strong>Reserva #{{booking.id}}</strong>
+        </div>
+        <div class="booking-status">
+          <span class="status-badge" [class]="getStatusBadgeClass(booking.status)">
+            {{getStatusText(booking.status)}}
+          </span>
+        </div>
+      </div>
+      
+      <div class="booking-details">
+        <div class="booking-info">
+          <div class="info-item">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Fecha: {{formatDate(booking.bookingDate)}}</span>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-users"></i>
+            <span>Huéspedes: {{booking.guests}}</span>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-dollar-sign"></i>
+            <span>Total: {{formatCurrency(booking.totalPrice)}}</span>
+          </div>
+        </div>
+        
+        <div class="booking-actions">
+          <button class="btn btn-outline-primary btn-sm" 
+                  (click)="viewBookingDetails(booking.id)">
+            <i class="fas fa-eye"></i>
+            Ver detalles
+          </button>
+          <button *ngIf="booking.status === 'PENDING'" 
+                  class="btn btn-outline-danger btn-sm"
+                  (click)="cancelBooking(booking.id)">
+            <i class="fas fa-times"></i>
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading && filteredBookings.length === 0" class="empty-state">
+    <i class="fas fa-calendar-times"></i>
+    <h3>No tienes reservas</h3>
+    <p>¡Es hora de planear tu próxima aventura caribeña!</p>
+    <button class="btn btn-primary" routerLink="/destinations">
+      <i class="fas fa-plus"></i>
+      Hacer nueva reserva
+    </button>
+  </div>
+</div>

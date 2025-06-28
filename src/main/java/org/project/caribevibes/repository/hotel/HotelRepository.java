@@ -164,6 +164,15 @@ public interface HotelRepository extends JpaRepository<Hotel, Long> {
     Page<Hotel> findAllByIsActiveTrueOrderByNameAsc(Pageable pageable);
 
     /**
+     * Obtiene todos los hoteles activos con destino cargado mediante JOIN FETCH.
+     * 
+     * @param pageable Configuración de paginación
+     * @return Página de hoteles activos con destino cargado
+     */
+    @Query("SELECT h FROM Hotel h LEFT JOIN FETCH h.destination d LEFT JOIN FETCH d.country LEFT JOIN FETCH h.roomTypes WHERE h.isActive = true ORDER BY h.name ASC")
+    Page<Hotel> findAllActiveHotelsWithDestination(Pageable pageable);
+
+    /**
      * Obtiene hoteles activos por destino paginados.
      * 
      * @param destinationId ID del destino

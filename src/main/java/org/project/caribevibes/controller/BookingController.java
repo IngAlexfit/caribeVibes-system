@@ -42,7 +42,6 @@ import java.util.stream.Collectors;
  */
 @RestController
 @RequestMapping("/api/bookings")
-@CrossOrigin(origins = "*", maxAge = 3600)
 public class BookingController {
 
     private static final Logger logger = LoggerFactory.getLogger(BookingController.class);
@@ -98,7 +97,7 @@ public class BookingController {
      * @return ResponseEntity con página de reservas del usuario
      */
     @GetMapping("/my-bookings")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('CLIENT') or hasRole('ADMIN')")
     public ResponseEntity<Page<BookingResponseDTO>> getMyBookings(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -127,7 +126,7 @@ public class BookingController {
      * @return ResponseEntity con los detalles de la reserva
      */
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('CLIENT') or hasRole('ADMIN')")
     public ResponseEntity<BookingResponseDTO> getBookingById(@PathVariable Long id) {
         logger.debug("Obteniendo reserva por ID: {}", id);
         

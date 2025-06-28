@@ -265,7 +265,7 @@ public class AuthService {
         // Crear el DTO de información del usuario
         AuthResponseDTO.UserInfoDTO userInfo = AuthResponseDTO.UserInfoDTO.builder()
                 .id(user.getId())
-                .username(user.getUsername())
+                .username(user.getRealUsername()) // Usar el username real
                 .email(user.getEmail())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())

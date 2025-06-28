@@ -133,7 +133,7 @@ public class User implements UserDetails {
 
     @Override
     public String getUsername() {
-        return username;
+        return email; // Retornar email como username para Spring Security
     }
 
     @Override
@@ -165,6 +165,14 @@ public class User implements UserDetails {
             return firstName + " " + lastName;
         }
         return firstName != null ? firstName : username;
+    }
+
+    /**
+     * Obtiene el username real del usuario (no el email)
+     * @return Username real del usuario
+     */
+    public String getRealUsername() {
+        return username;
     }
 
     /**

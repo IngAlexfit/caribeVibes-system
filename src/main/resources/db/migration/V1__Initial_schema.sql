@@ -54,13 +54,42 @@ CREATE TABLE experiences (
     INDEX idx_experiences_slug (slug)
 );
 
+-- Tabla de países
+CREATE TABLE countries (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    code VARCHAR(3) NOT NULL UNIQUE,  -- Código ISO 3166-1 alpha-3 (ej: COL, USA, BRA)
+    continent VARCHAR(50) NOT NULL,
+    currency VARCHAR(3),              -- Código ISO 4217 (ej: COP, USD, EUR)
+    phone_prefix VARCHAR(10),         -- Prefijo telefónico (ej: +57, +1, +55, +1-809)
+    is_active BOOLEAN DEFAULT TRUE,
+    
+    INDEX idx_countries_code (code),
+    INDEX idx_countries_name (name)
+);
+
+-- Insertar países iniciales del Caribe
+INSERT INTO countries (name, code, continent, currency, phone_prefix) VALUES
+('Colombia', 'COL', 'South America', 'COP', '+57'),
+('México', 'MEX', 'North America', 'MXN', '+52'),
+('República Dominicana', 'DOM', 'North America', 'DOP', '+1-809'),
+('Cuba', 'CUB', 'North America', 'CUP', '+53'),
+('Jamaica', 'JAM', 'North America', 'JMD', '+1-876'),
+('Puerto Rico', 'PRI', 'North America', 'USD', '+1-787'),
+('Bahamas', 'BHS', 'North America', 'BSD', '+1-242'),
+('Barbados', 'BRB', 'North America', 'BBD', '+1-246'),
+('Costa Rica', 'CRI', 'North America', 'CRC', '+506'),
+('Panamá', 'PAN', 'North America', 'PAB', '+507');
+
 -- Tabla de destinos
 CREATE TABLE destinations (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    country_id BIGINT NOT NULL,
     slug VARCHAR(100) NOT NULL UNIQUE,
     name VARCHAR(100) NOT NULL,
     description TEXT,
     long_description TEXT,
+    location VARCHAR(200),            -- Ciudad/región específica dentro del país
     image_url VARCHAR(500),
     tags JSON,
     experiences JSON,
@@ -68,6 +97,8 @@ CREATE TABLE destinations (
     low_season_price DECIMAL(10,2),
     high_season_price DECIMAL(10,2),
     
+    FOREIGN KEY (country_id) REFERENCES countries(id) ON DELETE RESTRICT,
+    INDEX idx_destinations_country (country_id),
     INDEX idx_destinations_slug (slug),
     INDEX idx_destinations_name (name)
 );

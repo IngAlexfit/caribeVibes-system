@@ -7,6 +7,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -43,6 +44,14 @@ public class Destination {
     private Long id;
 
     /**
+     * País al que pertenece este destino
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "country_id", nullable = false)
+    @JsonIgnore
+    private Country country;
+
+    /**
      * Identificador único de URL del destino (slug)
      * Se utiliza para crear URLs amigables
      */
@@ -70,6 +79,12 @@ public class Destination {
      */
     @Column(name = "long_description", columnDefinition = "TEXT")
     private String longDescription;
+
+    /**
+     * Ubicación específica dentro del país (ciudad, región, etc.)
+     */
+    @Column(length = 200)
+    private String location;
 
     /**
      * URL de la imagen principal del destino

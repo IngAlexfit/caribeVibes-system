@@ -1,0 +1,189 @@
+<div class="destinations-container">
+  <!-- Vista de Lista -->
+  <div *ngIf="!isDetailView">
+    <div class="page-header">
+      <div class="container">
+        <h1>Destinos Caribeños</h1>
+        <p>Descubre los lugares más increíbles del Caribe</p>
+      </div>
+    </div>
+
+    <div class="container">
+      <!-- Filtros -->
+      <div class="filters-section mb-4">
+        <div class="row">
+          <div class="col-md-6">
+            <input 
+              type="text" 
+              class="form-control" 
+              placeholder="Buscar destinos..." 
+              [(ngModel)]="searchTerm" 
+              (input)="onSearch()"
+            />
+          </div>
+          <div class="col-md-4">
+            <select class="form-control" [(ngModel)]="selectedCategory" (change)="onCategoryChange()">
+              <option value="">Todas las categorías</option>
+              <option *ngFor="let category of categories" [value]="category">{{ category }}</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <button class="btn btn-outline-primary w-100" (click)="clearFilters()">
+              Limpiar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading para la lista -->
+      <div *ngIf="isLoading" class="text-center py-5">
+        <h3>Cargando destinos...</h3>
+      </div>
+
+      <!-- Resultados -->
+      <div *ngIf="!isLoading" class="destinations-grid">
+        <div class="row">
+          <div class="col-md-4 mb-4" *ngFor="let destination of filteredDestinations">
+            <div class="card h-100" (click)="viewDestinationDetail(destination.id)" style="cursor: pointer;">
+              <img [src]="destination.imageUrl" [alt]="destination.name" class="card-img-top" style="height: 200px; object-fit: cover;">
+              <div class="card-body">
+                <h5 class="card-title">{{ destination.name }}</h5>
+                <p class="card-text">{{ destination.description }}</p>
+                <div class="mt-auto">
+                  <button class="btn btn-primary w-100">Ver Detalles</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sin resultados -->
+      <div *ngIf="!isLoading && filteredDestinations.length === 0" class="text-center py-5">
+        <h3>No se encontraron destinos</h3>
+        <p>Intenta con otros términos de búsqueda.</p>
+        <button class="btn btn-primary" (click)="clearFilters()">Ver Todos los Destinos</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vista de Detalle -->
+  <div *ngIf="isDetailView">
+    <!-- Loading state -->
+    <div *ngIf="isLoading" class="container text-center py-5">
+      <h3>Cargando destino...</h3>
+    </div>
+
+    <!-- Contenido del destino -->
+    <div *ngIf="!isLoading && selectedDestination">
+      <!-- Hero Section -->
+      <div class="destination-hero" style="background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('{{ selectedDestination.imageUrl }}'); background-size: cover; background-position: center; height: 400px; display: flex; align-items: center; color: white;">
+        <div class="container">
+          <button class="btn btn-light mb-3" (click)="goBackToList()">
+            ← Volver a Destinos
+          </button>
+          <h1 class="display-4">{{ selectedDestination.name }}</h1>
+          <p class="lead">{{ selectedDestination.description }}</p>
+        </div>
+      </div>
+
+      <!-- Contenido principal -->
+      <div class="container py-5">
+        <div class="row">
+          <div class="col-md-8">
+            <!-- Descripción -->
+            <div class="mb-5">
+              <h3>Acerca de este destino</h3>
+              <p class="lead">{{ selectedDestination.longDescription }}</p>
+            </div>
+
+            <!-- Tags -->
+            <div class="mb-5" *ngIf="selectedDestination.tags && selectedDestination.tags.length > 0">
+              <h4>Características</h4>
+              <div class="d-flex flex-wrap gap-2">
+                <span class="badge bg-primary" *ngFor="let tag of selectedDestination.tags">
+                  {{ tag }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Experiencias -->
+            <div class="mb-5" *ngIf="selectedDestination.experiences && selectedDestination.experiences.length > 0">
+              <h3>Experiencias Disponibles</h3>
+              <div class="row">
+                <div class="col-md-6 mb-3" *ngFor="let experience of selectedDestination.experiences">
+                  <div class="card h-100">
+                    <div class="card-body">
+                      <div class="d-flex align-items-center mb-3">
+                        <div class="experience-icon me-3" 
+                             [style.background-color]="experience.color" 
+                             style="width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                          <img [src]="experience.iconUrl" [alt]="experience.name" style="width: 30px; height: 30px; object-fit: contain;">
+                        </div>
+                        <h5 class="card-title mb-0">{{ experience.name }}</h5>
+                      </div>
+                      <p class="card-text">{{ experience.description }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <!-- Pricing Card -->
+            <div class="card sticky-top">
+              <div class="card-header">
+                <h4 class="mb-0">Precios</h4>
+              </div>
+              <div class="card-body">
+                <div class="price-option mb-3 p-3 border rounded">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <strong>Temporada Baja</strong>
+                      <br>
+                      <small class="text-muted">Enero - Mayo</small>
+                    </div>
+                    <div class="text-end">
+                      <h5 class="mb-0 text-success">{{ selectedDestination.lowSeasonPrice | currency:'USD':'symbol':'1.0-0' }}</h5>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="price-option mb-4 p-3 border rounded">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <strong>Temporada Alta</strong>
+                      <br>
+                      <small class="text-muted">Junio - Diciembre</small>
+                    </div>
+                    <div class="text-end">
+                      <h5 class="mb-0 text-primary">{{ selectedDestination.highSeasonPrice | currency:'USD':'symbol':'1.0-0' }}</h5>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="d-grid gap-2">
+                  <button class="btn btn-primary btn-lg">
+                    Reservar Ahora
+                  </button>
+                  <button class="btn btn-outline-primary" (click)="viewDestinationHotels(selectedDestination.id)">
+                    Ver Hoteles
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error state -->
+    <div *ngIf="!isLoading && !selectedDestination" class="container text-center py-5">
+      <h3>No se pudo cargar el destino</h3>
+      <button class="btn btn-primary" (click)="goBackToList()">
+        Volver a la lista
+      </button>
+    </div>
+  </div>
+</div>

@@ -51,9 +51,10 @@ public class HotelService {
     @Transactional(readOnly = true)
     @Cacheable(value = "hotels", key = "'all-active-' + #pageable.pageNumber + '-' + #pageable.pageSize")
     public Page<Hotel> findAllActiveHotels(Pageable pageable) {
-        logger.debug("Obteniendo todos los hoteles activos - página: {}, tamaño: {}", 
+        logger.info("🔍 EJECUTANDO CONSULTA A BD - Obteniendo todos los hoteles activos con destino - página: {}, tamaño: {}", 
                     pageable.getPageNumber(), pageable.getPageSize());
-        return hotelRepository.findAllByIsActiveTrueOrderByNameAsc(pageable);
+        logger.info("📊 CACHE MISS - Los datos se están obteniendo desde la base de datos");
+        return hotelRepository.findAllActiveHotelsWithDestination(pageable);
     }
 
     /**
@@ -106,7 +107,8 @@ public class HotelService {
     @Transactional(readOnly = true)
     @Cacheable(value = "hotels", key = "#id")
     public Optional<Hotel> findHotelById(Long id) {
-        logger.debug("Buscando hotel por ID: {}", id);
+        logger.info("🔍 EJECUTANDO CONSULTA A BD - Buscando hotel por ID: {}", id);
+        logger.info("📊 CACHE MISS - Los datos se están obteniendo desde la base de datos");
         return hotelRepository.findByIdAndIsActiveTrue(id);
     }    /**
      * Crea un nuevo hotel.

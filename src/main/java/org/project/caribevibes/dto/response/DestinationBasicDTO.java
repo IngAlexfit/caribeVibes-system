@@ -14,7 +14,8 @@ public class DestinationBasicDTO {
 
     private Long id;
     private String name;
-    private String country;
+    private String location;
+    private CountryBasicDTO country;
     private String imageUrl;
 
     /**
@@ -27,12 +28,14 @@ public class DestinationBasicDTO {
      * 
      * @param id Identificador único del destino
      * @param name Nombre del destino
+     * @param location Ubicación dentro del país
      * @param country País del destino
      * @param imageUrl URL de la imagen del destino
      */
-    public DestinationBasicDTO(Long id, String name, String country, String imageUrl) {
+    public DestinationBasicDTO(Long id, String name, String location, CountryBasicDTO country, String imageUrl) {
         this.id = id;
         this.name = name;
+        this.location = location;
         this.country = country;
         this.imageUrl = imageUrl;
     }
@@ -55,11 +58,19 @@ public class DestinationBasicDTO {
         this.name = name;
     }
 
-    public String getCountry() {
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public CountryBasicDTO getCountry() {
         return country;
     }
 
-    public void setCountry(String country) {
+    public void setCountry(CountryBasicDTO country) {
         this.country = country;
     }
 
@@ -76,7 +87,8 @@ public class DestinationBasicDTO {
         return "DestinationBasicDTO{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
-                ", country='" + country + '\'' +
+                ", location='" + location + '\'' +
+                ", country=" + (country != null ? country.getName() : "null") +
                 '}';
     }
 }

@@ -175,7 +175,7 @@ app:
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}
-    username: ${MAIL_USERNAME:noreply@caribedreams.com}
+    username: ${MAIL_USERNAME:noreply@caribevibes.com}
     password: ${MAIL_PASSWORD:your-email-password}
     properties:
       mail.smtp.auth: true
@@ -199,8 +199,8 @@ app:
         'api-key': ${GOOGLE_MAPS_API_KEY:}
   cors: # Moved CORS from spring.webflux to app.cors as spring.webflux.cors is not a standard Spring Boot property 
     allowed-origins:
-      - "${FRONTEND_URL:https://www.caribedreams.com}"
-      - "${ADMIN_URL:https://admin.caribedreams.com}"
+      - "${FRONTEND_URL:https://www.caribevibes.com}"
+      - "${ADMIN_URL:https://admin.caribevibes.com}"
     allowed-methods:
       - GET
       - POST

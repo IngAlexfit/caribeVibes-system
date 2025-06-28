@@ -1,0 +1,97 @@
+<nav class="navbar navbar-expand-lg navbar-custom fixed-top">
+  <div class="container">
+    <!-- Brand -->
+    <a class="navbar-brand" [routerLink]="['/']">
+      <img src="assets/images/logo-caribeVibes-circle.png" alt="Caribe Vibes Logo" class="navbar-logo">
+      Caribe Vibes
+    </a>
+
+    <!-- Mobile toggle -->
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Navigation -->
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link" [routerLink]="['/']" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+            <i class="fas fa-home me-1"></i>Inicio
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" [routerLink]="['/destinos']" routerLinkActive="active">
+            <i class="fas fa-map-marked-alt me-1"></i>Destinos
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" [routerLink]="['/hoteles']" routerLinkActive="active">
+            <i class="fas fa-hotel me-1"></i>Hoteles
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" [routerLink]="['/contacto']" routerLinkActive="active">
+            <i class="fas fa-envelope me-1"></i>Contacto
+          </a>
+        </li>
+      </ul>
+
+      <!-- User menu -->
+      <ul class="navbar-nav">
+        <ng-container *ngIf="isLoggedIn; else notLoggedInMenu">
+          <!-- Logged in menu -->
+          <li class="nav-item">
+            <a class="nav-link" [routerLink]="['/reservas']" routerLinkActive="active">
+              <i class="fas fa-calendar-check me-1"></i>Mis Reservas
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" [routerLink]="['/dashboard']" routerLinkActive="active">
+              <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+            </a>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" 
+               data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="fas fa-user-circle me-1"></i>
+              {{ currentUser?.firstName || 'Usuario' }}
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+              <li>
+                <a class="dropdown-item" [routerLink]="['/dashboard']">
+                  <i class="fas fa-user me-2"></i>Mi Perfil
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" [routerLink]="['/reservas']">
+                  <i class="fas fa-calendar me-2"></i>Mis Reservas
+                </a>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <a class="dropdown-item" href="#" (click)="logout()">
+                  <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                </a>
+              </li>
+            </ul>
+          </li>
+        </ng-container>
+
+        <!-- Not logged in menu -->
+        <ng-template #notLoggedInMenu>
+          <li class="nav-item">
+            <a class="nav-link" [routerLink]="['/login']" routerLinkActive="active">
+              <i class="fas fa-sign-in-alt me-1"></i>Iniciar Sesión
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="btn btn-outline-light ms-2" [routerLink]="['/registro']">
+              <i class="fas fa-user-plus me-1"></i>Registrarse
+            </a>
+          </li>
+        </ng-template>
+      </ul>
+    </div>
+  </div>
+</nav>

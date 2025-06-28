@@ -1,0 +1,18 @@
+<div class="app-container">
+  <!-- Loading Screen -->
+  <app-loading *ngIf="isLoading"></app-loading>
+  
+  <!-- Main Application -->
+  <div *ngIf="!isLoading" class="fade-in">
+    <!-- Navigation -->
+    <app-navbar></app-navbar>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+      <router-outlet></router-outlet>
+    </main>
+    
+    <!-- Footer -->
+    <app-footer></app-footer>
+  </div>
+</div>

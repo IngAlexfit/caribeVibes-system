@@ -3,7 +3,7 @@
 FROM openjdk:17-jdk-alpine
 
 # Metadatos de la imagen
-LABEL maintainer="Caribe Vibes Team <desarrollo@caribedreams.com>"
+LABEL maintainer="Caribe Vibes Team <desarrollo@caribevibes.com>"
 LABEL description="Sistema de gestión turística para el Caribe"
 LABEL version="1.0.0"
 

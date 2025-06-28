@@ -255,7 +255,7 @@ public class PdfService {
      */
     private void addFooter(Document document, PdfFont regularFont) {
         Paragraph footer = new Paragraph("\n\nGracias por elegir Caribe Vibes. " +
-                "Para cualquier consulta, contáctenos a info@caribedreams.com\n" +
+                "Para cualquier consulta, contáctenos a info@caribevibes.com\n" +
                 "Este voucher debe ser presentado al momento del check-in.")
                 .setFont(regularFont)
                 .setFontSize(10)

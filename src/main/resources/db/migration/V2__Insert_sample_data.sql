@@ -13,37 +13,42 @@ INSERT INTO experiences (slug, name, description, icon_url, color, display_order
 ('romance', 'Romance', 'Escapadas románticas perfectas para parejas', '/assets/images/romance.png', '#EC7063', 6, TRUE);
 
 -- Insertar destinos
-INSERT INTO destinations (slug, name, description, long_description, image_url, tags, experiences, low_season_price, high_season_price) VALUES
-('cartagena', 'Cartagena de Indias', 'Ciudad amurallada llena de historia y encanto colonial', 
+INSERT INTO destinations (country_id, slug, name, description, long_description, location, image_url, tags, experiences, low_season_price, high_season_price) VALUES
+(1, 'cartagena', 'Cartagena de Indias', 'Ciudad amurallada llena de historia y encanto colonial', 
 'Cartagena de Indias es una joya del Caribe colombiano que combina historia, cultura y belleza natural. Sus murallas coloniales, calles empedradas y arquitectura colonial la convierten en Patrimonio de la Humanidad. Disfruta de playas paradisíacas, gastronomía exquisita y una vibrante vida nocturna.',
+'Bolívar, Colombia',
 '/assets/images/cartagena.png', 
 '["Historia", "Patrimonio", "Playas", "Gastronomía", "Vida Nocturna"]',
 '["cultura", "gastronomia", "romance", "relax"]',
 350000.00, 450000.00),
 
-('santa-marta', 'Santa Marta', 'La perla del Caribe colombiano con playas espectaculares',
+(1, 'santa-marta', 'Santa Marta', 'La perla del Caribe colombiano con playas espectaculares',
 'Santa Marta es la ciudad más antigua de Colombia, ubicada entre la Sierra Nevada y el mar Caribe. Ofrece una combinación única de playas paradisíacas, montañas nevadas, parques nacionales y sitios arqueológicos. Es la puerta de entrada al Parque Nacional Tayrona y Ciudad Perdida.',
+'Magdalena, Colombia',
 '/assets/images/santa-marta.png',
 '["Playas", "Montañas", "Parques Nacionales", "Arqueología", "Aventura"]',
 '["aventura", "naturaleza", "relax", "cultura"]',
 320000.00, 420000.00),
 
-('san-andres', 'San Andrés', 'Isla paradisíaca con el mar de los siete colores',
+(1, 'san-andres', 'San Andrés', 'Isla paradisíaca con el mar de los siete colores',
 'San Andrés es un archipiélago colombiano en el Caribe conocido por sus aguas cristalinas de múltiples tonalidades azules, arrecifes de coral, y cultura raizal única. Perfect para buceo, snorkeling y relajación en playas de arena blanca.',
+'Archipiélago de San Andrés, Providencia y Santa Catalina',
 '/assets/images/san-andres.png',
 '["Buceo", "Arrecifes", "Playas", "Cultura Raizal", "Aguas Cristalinas"]',
 '["relax", "aventura", "naturaleza", "cultura"]',
 400000.00, 550000.00),
 
-('providencia', 'Providencia', 'Isla virgen con naturaleza exuberante',
+(1, 'providencia', 'Providencia', 'Isla virgen con naturaleza exuberante',
 'Providencia es una isla menos comercial que San Andrés, perfecta para quienes buscan tranquilidad y contacto directo con la naturaleza. Conocida por sus increíbles sitios de buceo, manglares y la hospitalidad de su gente.',
+'Archipiélago de San Andrés, Providencia y Santa Catalina',
 '/assets/images/providencia.png',
 '["Naturaleza Virgen", "Buceo", "Manglares", "Tranquilidad", "Ecoturismo"]',
 '["naturaleza", "relax", "aventura"]',
 380000.00, 500000.00),
 
-('tayrona', 'Parque Tayrona', 'Paraíso natural entre selva y mar',
+(1, 'tayrona', 'Parque Tayrona', 'Paraíso natural entre selva y mar',
 'El Parque Nacional Natural Tayrona combina selva tropical, playas vírgenes y sitios arqueológicos. Es hogar de una biodiversidad única y ofrece experiencias de ecoturismo, senderismo y conexión con pueblos indígenas.',
+'Magdalena, Colombia',
 '/assets/images/tayrona.png',
 '["Ecoturismo", "Senderismo", "Biodiversidad", "Arqueología", "Playas Vírgenes"]',
 '["naturaleza", "aventura", "cultura"]',
