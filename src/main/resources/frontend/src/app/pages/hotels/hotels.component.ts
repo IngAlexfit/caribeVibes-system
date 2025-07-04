@@ -53,6 +53,12 @@ export class HotelsComponent implements OnInit {
   /** @property {boolean} filtersExpanded - Controla si los filtros están expandidos en móvil */
   filtersExpanded = false;
 
+  /** @property {boolean} showBookingModal - Controla la visibilidad del modal de reserva */
+  showBookingModal = false;
+
+  /** @property {HotelResponse|null} hotelToBook - Hotel seleccionado para reservar */
+  hotelToBook: HotelResponse | null = null;
+
   /**
    * @constructor
    * @param {HotelService} hotelService - Servicio para obtener datos de hoteles
@@ -412,5 +418,37 @@ export class HotelsComponent implements OnInit {
    */
   viewHotelDetails(hotelId: number): void {
     this.router.navigate(['/hotels', hotelId]);
+  }
+
+  /**
+   * @method openBookingModal
+   * @description Abre el modal de reserva para un hotel específico
+   * @param {HotelResponse} hotel - Hotel a reservar
+   */
+  openBookingModal(hotel: HotelResponse): void {
+    this.hotelToBook = hotel;
+    this.showBookingModal = true;
+  }
+
+  /**
+   * @method closeBookingModal
+   * @description Cierra el modal de reserva
+   */
+  closeBookingModal(): void {
+    this.showBookingModal = false;
+    this.hotelToBook = null;
+  }
+
+  /**
+   * @method onBookingCreated
+   * @description Maneja el evento de reserva creada exitosamente
+   * @param {any} booking - Datos de la reserva creada
+   */
+  onBookingCreated(booking: any): void {
+    console.log('Reserva creada exitosamente:', booking);
+    // Mostrar mensaje de éxito
+    alert('¡Reserva creada exitosamente! Serás redirigido a tus reservas.');
+    // Redirigir a la página de reservas
+    this.router.navigate(['/bookings']);
   }
 }

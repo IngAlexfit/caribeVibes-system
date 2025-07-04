@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DestinationService } from '../../core/services/destination.service';
+import { HotelService } from '../../core/services/hotel.service';
 import { DestinationResponse } from '../../core/models/destination.model';
+import { HotelResponse } from '../../core/models/hotel.model';
 
 /**
  * @class DestinationsComponent
@@ -39,14 +41,22 @@ export class DestinationsComponent implements OnInit {
   /** @property {string[]} categories - Lista de categorías de destinos disponibles */
   categories = ['Playa', 'Montaña', 'Ciudad', 'Aventura', 'Cultura', 'Naturaleza'];
 
+  /** @property {boolean} showBookingModal - Controla la visibilidad del modal de reserva */
+  showBookingModal = false;
+
+  /** @property {HotelResponse|null} selectedHotelForBooking - Hotel seleccionado para reservar */
+  selectedHotelForBooking: HotelResponse | null = null;
+
   /**
    * @constructor
    * @param {DestinationService} destinationService - Servicio para obtener datos de destinos
+   * @param {HotelService} hotelService - Servicio para obtener datos de hoteles
    * @param {ActivatedRoute} route - Servicio para acceder a parámetros de la ruta
    * @param {Router} router - Servicio para navegación entre rutas
    */
   constructor(
     private destinationService: DestinationService,
+    private hotelService: HotelService,
     private route: ActivatedRoute,
     private router: Router
   ) {}
@@ -194,5 +204,55 @@ export class DestinationsComponent implements OnInit {
     this.router.navigate(['/hotels'], { 
       queryParams: { destinationId: destinationId } 
     });
+  }
+
+  /**
+   * @method bookDestinationDirect
+   * @description Inicia el proceso de reserva para un destino buscando el mejor hotel disponible
+   * @param {number} destinationId - ID del destino a reservar
+   */
+  bookDestinationDirect(destinationId: number): void {
+    // Buscar hoteles en el destino y mostrar el mejor disponible para reservar
+    this.hotelService.getHotelsByDestination(destinationId).subscribe({
+      next: (response) => {
+        if (response.content && response.content.length > 0) {
+          // Seleccionar el hotel con mejor rating o el primero disponible
+          const bestHotel = response.content.reduce((best, current) => 
+            current.rating > best.rating ? current : best
+          );
+          this.selectedHotelForBooking = bestHotel;
+          this.showBookingModal = true;
+        } else {
+          // Si no hay hoteles, redirigir a la página de hoteles para ese destino
+          this.viewDestinationHotels(destinationId);
+        }
+      },
+      error: (error) => {
+        console.error('Error loading hotels for destination:', error);
+        // En caso de error, redirigir a hoteles
+        this.viewDestinationHotels(destinationId);
+      }
+    });
+  }
+
+  /**
+   * @method closeBookingModal
+   * @description Cierra el modal de reserva
+   */
+  closeBookingModal(): void {
+    this.showBookingModal = false;
+    this.selectedHotelForBooking = null;
+  }
+
+  /**
+   * @method onBookingCreated
+   * @description Maneja el evento de reserva creada exitosamente
+   * @param {any} booking - Datos de la reserva creada
+   */
+  onBookingCreated(booking: any): void {
+    console.log('Reserva creada exitosamente:', booking);
+    // Mostrar mensaje de éxito
+    alert('¡Reserva creada exitosamente! Serás redirigido a tus reservas.');
+    this.router.navigate(['/bookings']);
   }
 }

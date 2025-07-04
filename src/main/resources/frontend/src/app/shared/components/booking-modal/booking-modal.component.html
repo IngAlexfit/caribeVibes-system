@@ -1,0 +1,301 @@
+<!-- Modal de Reserva -->
+<div class="modal-overlay" [class.show]="isVisible" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <!-- Header del Modal -->
+    <div class="modal-header">
+      <h2 class="modal-title">
+        <i class="fas fa-calendar-plus"></i>
+        Reservar Hotel
+      </h2>
+      <button type="button" class="btn-close" (click)="closeModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- Información del Hotel -->
+    <div class="hotel-info" *ngIf="hotel">
+      <div class="hotel-summary">
+        <img [src]="hotel.imageUrl" [alt]="hotel.name" class="hotel-image">
+        <div class="hotel-details">
+          <h3>{{ hotel.name }}</h3>
+          <p class="hotel-location">
+            <i class="fas fa-map-marker-alt"></i>
+            {{ hotel.destinationName }}
+          </p>
+          <div class="hotel-rating">
+            <span class="stars">
+              <i *ngFor="let star of [1,2,3,4,5]" 
+                 class="fas fa-star" 
+                 [class.filled]="star <= hotel.rating">
+              </i>
+            </span>
+            <span class="rating-text">({{ hotel.rating }}/5)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formulario de Reserva -->
+    <form [formGroup]="bookingForm" (ngSubmit)="onSubmit()" class="booking-form">
+      
+      <!-- Fechas de Estancia -->
+      <div class="form-section">
+        <h4>Fechas de Estancia</h4>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="checkInDate">Fecha de Entrada</label>
+            <input 
+              type="date" 
+              id="checkInDate"
+              formControlName="checkInDate"
+              [min]="minDate"
+              class="form-control"
+              [class.is-invalid]="isFieldInvalid('checkInDate')">
+            <div class="invalid-feedback" *ngIf="isFieldInvalid('checkInDate')">
+              <span *ngIf="bookingForm.get('checkInDate')?.errors?.['required']">
+                La fecha de entrada es requerida
+              </span>
+              <span *ngIf="bookingForm.get('checkInDate')?.errors?.['notFutureDate']">
+                La fecha de entrada debe ser futura
+              </span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="checkOutDate">Fecha de Salida</label>
+            <input 
+              type="date" 
+              id="checkOutDate"
+              formControlName="checkOutDate"
+              [min]="minCheckOutDate"
+              class="form-control"
+              [class.is-invalid]="isFieldInvalid('checkOutDate')">
+            <div class="invalid-feedback" *ngIf="isFieldInvalid('checkOutDate')">
+              <span *ngIf="bookingForm.get('checkOutDate')?.errors?.['required']">
+                La fecha de salida es requerida
+              </span>
+              <span *ngIf="bookingForm.get('checkOutDate')?.errors?.['notFutureDate']">
+                La fecha de salida debe ser futura
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="nights-info" *ngIf="getNights() > 0">
+          <span class="nights-count">{{ getNights() }} noche(s)</span>
+        </div>
+      </div>
+
+      <!-- Selección de Habitación -->
+      <div class="form-section" *ngIf="hotel">
+        <h4>Tipo de Habitación</h4>
+        <div class="room-selection">
+          <div 
+            *ngFor="let room of hotel.roomTypes" 
+            class="room-option"
+            [class.selected]="bookingForm.value.roomTypeId == room.id"
+            (click)="bookingForm.patchValue({roomTypeId: room.id})">
+            <input 
+              type="radio" 
+              [value]="room.id" 
+              formControlName="roomTypeId"
+              [id]="'room-' + room.id"
+              class="room-radio">
+            <label [for]="'room-' + room.id" class="room-label">
+              <div class="room-info">
+                <h5>{{ room.name }}</h5>
+                <p class="room-description">{{ room.description }}</p>
+                <div class="room-features">
+                  <span class="feature">
+                    <i class="fas fa-users"></i>
+                    Capacidad: {{ room.capacity }} personas
+                  </span>
+                </div>
+              </div>
+              <div class="room-price">
+                <span class="price">{{ formatCurrency(room.pricePerNight) }}</span>
+                <span class="price-unit">por noche</span>
+              </div>
+            </label>
+          </div>
+        </div>
+        <div class="invalid-feedback" 
+             [style.display]="isFieldInvalid('roomTypeId') ? 'block' : 'none'">
+          <i class="fas fa-exclamation-triangle"></i>
+          Debe seleccionar un tipo de habitación
+        </div>
+      </div>
+
+      <!-- Número de Huéspedes y Habitaciones -->
+      <div class="form-section">
+        <h4>Huéspedes y Habitaciones</h4>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="numGuests">Número de Huéspedes</label>
+            <select 
+              id="numGuests"
+              formControlName="numGuests"
+              class="form-control"
+              [class.is-invalid]="isFieldInvalid('numGuests')">
+              <option value="1">1 Huésped</option>
+              <option value="2">2 Huéspedes</option>
+              <option value="3">3 Huéspedes</option>
+              <option value="4">4 Huéspedes</option>
+              <option value="5">5 Huéspedes</option>
+              <option value="6">6 Huéspedes</option>
+              <option value="7">7 Huéspedes</option>
+              <option value="8">8 Huéspedes</option>
+              <option value="9">9 Huéspedes</option>
+              <option value="10">10 Huéspedes</option>
+              <option value="11">11 Huéspedes</option>
+              <option value="12">12 Huéspedes</option>
+              <option value="13">13 Huéspedes</option>
+              <option value="14">14 Huéspedes</option>
+              <option value="15">15 Huéspedes</option>
+              <option value="16">16 Huéspedes</option>
+              <option value="17">17 Huéspedes</option>
+              <option value="18">18 Huéspedes</option>
+              <option value="19">19 Huéspedes</option>
+              <option value="20">20 Huéspedes</option>
+            </select>
+            <div class="invalid-feedback" *ngIf="isFieldInvalid('numGuests')">
+              El número de huéspedes es requerido
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="numRooms">Número de Habitaciones</label>
+            <select 
+              id="numRooms"
+              formControlName="numRooms"
+              class="form-control"
+              [class.is-invalid]="isFieldInvalid('numRooms')">
+              <option value="1">1 Habitación</option>
+              <option value="2">2 Habitaciones</option>
+              <option value="3">3 Habitaciones</option>
+              <option value="4">4 Habitaciones</option>
+              <option value="5">5 Habitaciones</option>
+              <option value="6">6 Habitaciones</option>
+              <option value="7">7 Habitaciones</option>
+              <option value="8">8 Habitaciones</option>
+              <option value="9">9 Habitaciones</option>
+              <option value="10">10 Habitaciones</option>
+            </select>
+            <div class="invalid-feedback" *ngIf="isFieldInvalid('numRooms')">
+              El número de habitaciones es requerido
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actividades Opcionales -->
+      <div class="form-section" *ngIf="availableActivities.length > 0">
+        <h4>
+          <i class="fas fa-star"></i>
+          Experiencias y Actividades Opcionales
+        </h4>
+        <p class="section-description">
+          Selecciona las actividades que deseas incluir en tu viaje. Podrás disfrutar de estas experiencias durante tu estancia.
+        </p>
+        <div class="activities-grid">
+          <div 
+            *ngFor="let activity of availableActivities" 
+            class="activity-card"
+            [class.selected]="isActivitySelected(activity.id)"
+            (click)="toggleActivity(activity.id)">
+            <div class="activity-content">
+              <div class="activity-header">
+                <h5>{{ activity.name }}</h5>
+                <div class="activity-checkbox">
+                  <i class="fas" 
+                     [class.fa-check-circle]="isActivitySelected(activity.id)" 
+                     [class.fa-circle]="!isActivitySelected(activity.id)"
+                     [style.color]="isActivitySelected(activity.id) ? '#28a745' : '#6c757d'"></i>
+                </div>
+              </div>
+              <p class="activity-description">{{ activity.description }}</p>
+              <div class="activity-footer">
+                <div class="activity-price">
+                  <span class="price-label">Precio:</span>
+                  <span class="price-value">{{ formatCurrency(activity.price) }}</span>
+                </div>
+                <div class="activity-selection" *ngIf="isActivitySelected(activity.id)">
+                  <i class="fas fa-check"></i>
+                  <span>Seleccionada</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Resumen de actividades seleccionadas -->
+        <div class="selected-activities-summary" *ngIf="selectedActivities.length > 0">
+          <h5>
+            <i class="fas fa-list-check"></i>
+            Actividades Seleccionadas ({{ selectedActivities.length }})
+          </h5>
+          <div class="selected-activities-list">
+            <div *ngFor="let activityId of selectedActivities" class="selected-activity-item">
+              <span class="activity-name">
+                {{ getActivityName(activityId) }}
+              </span>
+              <span class="activity-price">
+                {{ formatCurrency(getActivityPrice(activityId)) }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Solicitudes Especiales -->
+      <div class="form-section">
+        <h4>Solicitudes Especiales (Opcional)</h4>
+        <div class="form-group">
+          <textarea 
+            formControlName="specialRequests"
+            placeholder="Ingrese cualquier solicitud especial..."
+            class="form-control"
+            rows="3">
+          </textarea>
+        </div>
+      </div>
+
+      <!-- Resumen de Precios -->
+      <div class="price-summary">
+        <h4>Resumen de Precios</h4>
+        <div class="price-breakdown">
+          <div class="price-item" *ngIf="basePrice > 0">
+            <span>Alojamiento ({{ getNights() }} noche(s))</span>
+            <span>{{ formatCurrency(basePrice) }}</span>
+          </div>
+          <div class="price-item" *ngIf="activitiesPrice > 0">
+            <span>Actividades</span>
+            <span>{{ formatCurrency(activitiesPrice) }}</span>
+          </div>
+          <div class="price-item total">
+            <span>Total</span>
+            <span>{{ formatCurrency(totalPrice) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Error Message -->
+      <div class="alert alert-danger" *ngIf="errorMessage">
+        <i class="fas fa-exclamation-triangle"></i>
+        {{ errorMessage }}
+      </div>
+
+      <!-- Acciones del Modal -->
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" (click)="closeModal()">
+          Cancelar
+        </button>
+        <button 
+          type="submit" 
+          class="btn btn-primary"
+          [disabled]="bookingForm.invalid || isSubmitting || totalPrice === 0">
+          <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2"></span>
+          <i *ngIf="!isSubmitting" class="fas fa-check"></i>
+          {{ isSubmitting ? 'Procesando...' : 'Confirmar Reserva' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

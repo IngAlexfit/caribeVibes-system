@@ -171,9 +171,14 @@
               <span class="price">${{getMinPrice(hotel)}}</span>
               <span class="price-unit">por noche</span>
             </div>
-            <button class="book-btn" (click)="viewHotelDetails(hotel.id)">
-              Ver detalles
-            </button>
+            <div class="hotel-actions">
+              <button class="book-btn secondary" (click)="$event.stopPropagation(); viewHotelDetails(hotel.id)">
+                Ver detalles
+              </button>
+              <button class="book-btn primary" (click)="$event.stopPropagation(); openBookingModal(hotel)">
+                Reservar
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -289,7 +294,7 @@
               </div>
 
               <div class="action-buttons">
-                <button class="btn-primary-new btn-reserve">
+                <button class="btn-primary-new btn-reserve" (click)="openBookingModal(selectedHotel)">
                   <i class="fas fa-calendar-check"></i>
                   <span>Reservar</span>
                 </button>
@@ -448,7 +453,7 @@
             </div>
 
             <div class="booking-actions">
-              <button class="btn-book-now">
+              <button class="btn-book-now" (click)="openBookingModal(selectedHotel)">
                 <i class="fas fa-calendar-plus"></i>
                 <span>Reservar Ahora</span>
               </button>
@@ -530,3 +535,13 @@
     </div>
 
   </div>
+</div>
+
+<!-- Modal de Reserva -->
+<app-booking-modal
+  [hotel]="hotelToBook"
+  [destinationId]="destinationId"
+  [isVisible]="showBookingModal"
+  (close)="closeBookingModal()"
+  (bookingCreated)="onBookingCreated($event)">
+</app-booking-modal>

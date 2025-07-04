@@ -147,4 +147,20 @@ export class BookingService {
   completeBooking(id: number): Observable<any> {
     return this.http.put(`${this.API_URL}/${id}/complete`, {});
   }
+
+  /**
+   * @method addActivityToBooking
+   * @description Agrega una actividad a una reserva existente
+   * @param {number} bookingId - ID de la reserva
+   * @param {number} activityId - ID de la actividad
+   * @param {number} quantity - Cantidad de personas para la actividad
+   * @returns {Observable<any>} Respuesta de la operación
+   */
+  addActivityToBooking(bookingId: number, activityId: number, quantity: number): Observable<any> {
+    const params = new HttpParams()
+      .set('activityId', activityId.toString())
+      .set('quantity', quantity.toString());
+
+    return this.http.post(`${this.API_URL}/${bookingId}/activities`, null, { params });
+  }
 }

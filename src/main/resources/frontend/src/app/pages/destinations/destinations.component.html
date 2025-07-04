@@ -164,7 +164,7 @@
                 </div>
 
                 <div class="d-grid gap-2">
-                  <button class="btn btn-primary btn-lg">
+                  <button class="btn btn-primary btn-lg" (click)="bookDestinationDirect(selectedDestination.id)">
                     Reservar Ahora
                   </button>
                   <button class="btn btn-outline-primary" (click)="viewDestinationHotels(selectedDestination.id)">
@@ -187,3 +187,12 @@
     </div>
   </div>
 </div>
+
+<!-- Modal de Reserva -->
+<app-booking-modal
+  [hotel]="selectedHotelForBooking"
+  [destinationId]="selectedDestination?.id || null"
+  [isVisible]="showBookingModal"
+  (close)="closeBookingModal()"
+  (bookingCreated)="onBookingCreated($event)">
+</app-booking-modal>

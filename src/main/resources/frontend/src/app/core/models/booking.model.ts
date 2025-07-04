@@ -69,12 +69,13 @@ export interface BookingRequest {
   checkInDate: string;
   /** @property {string} checkOutDate - Fecha de salida (formato string) */
   checkOutDate: string;
-  /** @property {number} guests - Número de huéspedes */
-  guests: number;
+  /** @property {number} numGuests - Número de huéspedes */
+  numGuests: number;
+  /** @property {number} numRooms - Número de habitaciones a reservar */
+  numRooms: number;
   /** @property {string} [specialRequests] - Solicitudes especiales */
   specialRequests?: string;
-  /** @property {number[]} [activityIds] - IDs de actividades a incluir */
-  activityIds?: number[];
+  // NOTA: Las actividades se agregan DESPUÉS de crear la reserva mediante endpoints separados
 }
 
 /**

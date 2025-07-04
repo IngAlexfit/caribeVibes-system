@@ -14,6 +14,7 @@ import { AuthInterceptor } from './core/interceptors/auth.interceptor';
 import { NavbarComponent } from './shared/components/navbar/navbar.component';
 import { FooterComponent } from './shared/components/footer/footer.component';
 import { LoadingComponent } from './shared/components/loading/loading.component';
+import { BookingModalComponent } from './shared/components/booking-modal/booking-modal.component';
 
 // Pages
 import { HomeComponent } from './pages/home/home.component';
@@ -36,6 +37,7 @@ import { ContactComponent } from './pages/contact/contact.component';
     NavbarComponent,
     FooterComponent,
     LoadingComponent,
+    BookingModalComponent,
     HomeComponent,
     DestinationsComponent,
     HotelsComponent,

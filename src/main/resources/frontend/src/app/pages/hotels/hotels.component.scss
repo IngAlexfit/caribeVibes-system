@@ -489,7 +489,44 @@
         }
       }
 
-      .book-btn {
+      .hotel-actions {
+        display: flex;
+        gap: 10px;
+
+        .book-btn {
+          border: none;
+          padding: 8px 16px;
+          border-radius: 6px;
+          font-weight: 600;
+          font-size: 0.9rem;
+          transition: all 0.3s ease;
+          cursor: pointer;
+
+          &.secondary {
+            background: transparent;
+            color: $primary-color;
+            border: 2px solid $primary-color;
+
+            &:hover {
+              background: $primary-color;
+              color: white;
+            }
+          }
+
+          &.primary {
+            background: $gradient-primary;
+            color: white;
+
+            &:hover {
+              transform: translateY(-2px);
+              box-shadow: $shadow-md;
+            }
+          }
+        }
+      }
+
+      // Mantener compatibilidad con botón único anterior
+      .book-btn:not(.secondary):not(.primary) {
         background: $gradient-primary;
         color: white;
         border: none;

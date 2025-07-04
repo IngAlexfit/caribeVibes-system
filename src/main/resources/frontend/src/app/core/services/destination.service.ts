@@ -113,6 +113,16 @@ export class DestinationService {
   }
 
   /**
+   * @method getAllDestinationActivities
+   * @description Obtiene todas las actividades disponibles en un destino específico (sin paginación)
+   * @param {number} destinationId - ID del destino
+   * @returns {Observable<Activity[]>} Observable con la lista de actividades
+   */
+  getAllDestinationActivities(destinationId: number): Observable<Activity[]> {
+    return this.http.get<Activity[]>(`${this.API_URL}/${destinationId}/activities/all`);
+  }
+
+  /**
    * @method getActivityById
    * @description Obtiene los detalles de una actividad específica por su ID
    * @param {number} activityId - ID de la actividad

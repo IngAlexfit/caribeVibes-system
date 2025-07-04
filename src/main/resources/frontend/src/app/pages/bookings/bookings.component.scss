@@ -338,3 +338,139 @@
     border-color: darken($primary-color, 10%);
   }
 }
+
+/* Estilos para el modal de detalles de reserva con SweetAlert2 */
+:global(.booking-details-container) {
+  text-align: left !important;
+
+  .booking-details-modal {
+    .hotel-info {
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #e9ecef;
+
+      h4 {
+        margin: 0;
+        color: #007bff;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+    }
+
+    .booking-info {
+      .info-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 15px;
+        gap: 20px;
+
+        .info-item {
+          flex: 1;
+
+          strong {
+            display: block;
+            color: #495057;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+
+            i {
+              margin-right: 6px;
+              color: #6c757d;
+            }
+          }
+
+          span {
+            color: #212529;
+            font-weight: 500;
+
+            &.status {
+              padding: 4px 8px;
+              border-radius: 4px;
+              font-size: 0.85rem;
+              text-transform: uppercase;
+
+              &.status-pending {
+                background: #fff3cd;
+                color: #856404;
+              }
+
+              &.status-confirmed {
+                background: #d1ecf1;
+                color: #0c5460;
+              }
+
+              &.status-completed {
+                background: #d4edda;
+                color: #155724;
+              }
+
+              &.status-cancelled {
+                background: #f8d7da;
+                color: #721c24;
+              }
+            }
+
+            &.total-amount {
+              font-weight: 700;
+              font-size: 1.1rem;
+              color: #28a745;
+            }
+          }
+        }
+      }
+    }
+
+    .activities-section {
+      margin-top: 20px;
+      padding-top: 15px;
+      border-top: 1px solid #e9ecef;
+
+      h5 {
+        margin: 0 0 10px 0;
+        color: #007bff;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .activities-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+
+        li {
+          padding: 8px 0;
+          border-bottom: 1px solid #f1f3f4;
+
+          &:last-child {
+            border-bottom: none;
+          }
+        }
+      }
+    }
+
+    .special-requests-section {
+      margin-top: 20px;
+      padding-top: 15px;
+      border-top: 1px solid #e9ecef;
+
+      h5 {
+        margin: 0 0 10px 0;
+        color: #007bff;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      p {
+        margin: 0;
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 4px;
+        font-style: italic;
+        color: #495057;
+      }
+    }
+  }
+}
