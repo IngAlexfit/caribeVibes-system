@@ -157,7 +157,7 @@ public class BookingController {
      * @return ResponseEntity con los detalles de la reserva
      */
     @GetMapping("/by-confirmation/{confirmationCode}")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('CLIENT') or hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<BookingResponseDTO> getBookingByConfirmationCode(@PathVariable String confirmationCode) {
         logger.debug("Buscando reserva por código de confirmación: {}", confirmationCode);
         
@@ -238,7 +238,7 @@ public class BookingController {
      * @return ResponseEntity con la reserva creada
      */
     @PostMapping
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('CLIENT') or hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<BookingResponseDTO> createBooking(@Valid @RequestBody BookingRequestDTO bookingRequest) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         logger.info("Creando nueva reserva para usuario: {}", userEmail);
@@ -258,6 +258,7 @@ public class BookingController {
         Booking booking = new Booking();
         booking.setUser(currentUser);
         booking.setHotel(hotel);
+        booking.setDestination(hotel.getDestination()); // Set the destination from the hotel
         booking.setRoomType(roomType);
         booking.setCheckInDate(bookingRequest.getCheckInDate());
         booking.setCheckOutDate(bookingRequest.getCheckOutDate());
@@ -304,7 +305,7 @@ public class BookingController {
      * @return ResponseEntity con mensaje de confirmación
      */
     @PutMapping("/{id}/cancel")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('CLIENT') or hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<Map<String, String>> cancelBooking(@PathVariable Long id) {
         logger.info("Cancelando reserva con ID: {}", id);
         
@@ -344,7 +345,7 @@ public class BookingController {
      * @return ResponseEntity con la actividad agregada
      */
     @PostMapping("/{bookingId}/activities")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('CLIENT') or hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<BookingActivityResponseDTO> addActivityToBooking(
             @PathVariable Long bookingId,
             @RequestParam Long activityId,
@@ -380,7 +381,7 @@ public class BookingController {
      * @return ResponseEntity con lista de actividades de la reserva
      */
     @GetMapping("/{bookingId}/activities")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('CLIENT') or hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<List<BookingActivityResponseDTO>> getBookingActivities(@PathVariable Long bookingId) {
         logger.debug("Obteniendo actividades para reserva ID: {}", bookingId);
         
@@ -451,7 +452,7 @@ public class BookingController {
      * @return ResponseEntity con el archivo PDF
      */
     @GetMapping("/{bookingId}/voucher")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('CLIENT') or hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<byte[]> downloadVoucher(@PathVariable Long bookingId) {
         logger.info("Generando voucher PDF para reserva ID: {}", bookingId);
         
