@@ -174,4 +174,12 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
      * @return Optional con la actividad encontrada o vacío si no existe
      */
     Optional<Activity> findByIdAndIsAvailableTrue(Long id);
+
+    /**
+     * Obtiene todas las actividades de un destino por ID ordenadas por nombre
+     * 
+     * @param destinationId ID del destino
+     * @return Lista de actividades del destino ordenadas por nombre
+     */
+    List<Activity> findByDestinationIdOrderByNameAsc(Long destinationId);
 }

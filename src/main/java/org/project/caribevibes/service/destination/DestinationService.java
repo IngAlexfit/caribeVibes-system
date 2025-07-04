@@ -345,6 +345,19 @@ public class DestinationService {
     }
 
     /**
+     * Obtiene todas las actividades asociadas a un destino (sin paginación)
+     * 
+     * @param destinationId ID del destino
+     * @return Lista de todas las actividades del destino
+     */
+    @Transactional(readOnly = true)
+    public List<Activity> getAllActivitiesByDestination(Long destinationId) {
+        log.debug("Obteniendo todas las actividades para destino ID: {}", destinationId);
+
+        return activityRepository.findByDestinationIdOrderByNameAsc(destinationId);
+    }
+
+    /**
      * Obtiene las experiencias asociadas a un destino con paginación
      * 
      * @param destinationId ID del destino

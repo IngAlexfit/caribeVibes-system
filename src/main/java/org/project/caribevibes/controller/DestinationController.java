@@ -183,6 +183,27 @@ public class DestinationController {
     }
 
     /**
+     * Obtiene todas las actividades de un destino (sin paginación).
+     * Útil para formularios y modales que necesitan mostrar todas las actividades.
+     * 
+     * @param destinationId ID del destino
+     * @return ResponseEntity con lista de todas las actividades del destino
+     */
+    @GetMapping("/{destinationId}/activities/all")
+    public ResponseEntity<List<Activity>> getAllActivitiesByDestination(@PathVariable Long destinationId) {
+        logger.debug("Obteniendo todas las actividades para destino ID: {}", destinationId);
+        
+        // Verificar que el destino existe
+        destinationRepository.findById(destinationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Destino", "id", destinationId));
+
+        List<Activity> activities = destinationService.getAllActivitiesByDestination(destinationId);
+        
+        logger.debug("Encontradas {} actividades para destino ID: {}", activities.size(), destinationId);
+        return ResponseEntity.ok(activities);
+    }
+
+    /**
      * Obtiene las experiencias de un destino.
      * 
      * @param destinationId ID del destino
