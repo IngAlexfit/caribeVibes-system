@@ -15,7 +15,7 @@ import org.project.caribevibes.entity.user.User;
 import org.project.caribevibes.service.booking.BookingService;
 import org.project.caribevibes.service.hotel.HotelService;
 import org.project.caribevibes.service.auth.AuthService;
-// import org.project.caribevibes.service.pdf.PdfService;
+import org.project.caribevibes.service.pdf.PdfService;
 import org.project.caribevibes.exception.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,8 +57,8 @@ public class BookingController {
     private HotelService hotelService;    @Autowired
     private AuthService authService;
 
-    // @Autowired
-    // private PdfService pdfService;
+    @Autowired
+    private PdfService pdfService;
 
     /**
      * Obtiene todas las reservas activas (solo para administradores).
@@ -527,10 +527,15 @@ public class BookingController {
                 throw new ResourceNotFoundException("Reserva", "id", bookingId);
             }
 
-            // Por ahora retornamos un error indicando que la funcionalidad está en desarrollo
-            logger.info("Voucher PDF solicitado para reserva ID: {} - funcionalidad en desarrollo", bookingId);
-            return ResponseEntity.status(501)
-                    .body("Generación de vouchers PDF temporalmente deshabilitada - en desarrollo".getBytes());
+            // Generar el voucher PDF
+            logger.info("Generando voucher PDF para reserva ID: {}", bookingId);
+            byte[] pdfBytes = pdfService.generateBookingVoucher(booking);
+            
+            // Configurar headers para la descarga
+            return ResponseEntity.ok()
+                    .header("Content-Type", "application/pdf")
+                    .header("Content-Disposition", "attachment; filename=\"voucher-reserva-" + bookingId + ".pdf\"")
+                    .body(pdfBytes);
                     
         } catch (ResourceNotFoundException e) {
             logger.error("Reserva no encontrada: {}", bookingId);
