@@ -1,11 +1,32 @@
-# Dockerfile para Caribe Vibes - Sistema de Gestión Turística
-# Imagen base: OpenJDK 17 Alpine (optimizada)
-FROM openjdk:17-jdk-alpine
+# Dockerfile multi-stage para Caribe Vibes - Sistema de Gestión Turística
+
+# ETAPA 1: Construcción
+FROM maven:3.9.6-openjdk-21-slim AS builder
 
 # Metadatos de la imagen
 LABEL maintainer="Caribe Vibes Team <desarrollo@caribevibes.com>"
 LABEL description="Sistema de gestión turística para el Caribe"
 LABEL version="1.0.0"
+
+# Crear directorio de trabajo
+WORKDIR /build
+
+# Copiar archivos de configuración de Maven primero (para aprovechar cache de Docker)
+COPY pom.xml .
+COPY .mvn/ .mvn/
+COPY mvnw .
+
+# Descargar dependencias (se cachea si no cambia pom.xml)
+RUN mvn dependency:go-offline -B
+
+# Copiar código fuente
+COPY src/ src/
+
+# Compilar y empaquetar la aplicación
+RUN mvn clean package -DskipTests -B
+
+# ETAPA 2: Runtime
+FROM openjdk:21-jdk-alpine AS runtime
 
 # Crear usuario no privilegiado para seguridad
 RUN addgroup -g 1001 -S caribe && \
@@ -24,12 +45,12 @@ RUN cp /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 # Crear directorios de trabajo
 WORKDIR /app
 
-# Copiar archivo JAR (construido previamente)
-COPY target/caribe-vibes-1.0.0.jar app.jar
+# Copiar JAR desde la etapa de construcción
+COPY --from=builder /build/target/caribeVibes-*.jar app.jar
 
 # Crear directorios para logs y uploads
-RUN mkdir -p /var/log/caribe-dreams /var/caribe-dreams/uploads && \
-    chown -R caribe:caribe /var/log/caribe-dreams /var/caribe-dreams /app
+RUN mkdir -p /var/log/caribe-vibes /var/caribe-vibes/uploads && \
+    chown -R caribe:caribe /var/log/caribe-vibes /var/caribe-vibes /app
 
 # Cambiar al usuario no privilegiado
 USER caribe
