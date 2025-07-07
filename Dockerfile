@@ -1,12 +1,15 @@
 # Dockerfile multi-stage para Caribe Vibes - Sistema de Gestión Turística
 
 # ETAPA 1: Construcción
-FROM maven:3.9.6-openjdk-21-slim AS builder
+FROM eclipse-temurin:21-jdk-alpine AS builder
 
 # Metadatos de la imagen
 LABEL maintainer="Caribe Vibes Team <desarrollo@caribevibes.com>"
 LABEL description="Sistema de gestión turística para el Caribe"
 LABEL version="1.0.0"
+
+# Instalar Maven
+RUN apk add --no-cache maven
 
 # Crear directorio de trabajo
 WORKDIR /build
@@ -16,17 +19,20 @@ COPY pom.xml .
 COPY .mvn/ .mvn/
 COPY mvnw .
 
+# Hacer mvnw ejecutable
+RUN chmod +x mvnw
+
 # Descargar dependencias (se cachea si no cambia pom.xml)
-RUN mvn dependency:go-offline -B
+RUN ./mvnw dependency:go-offline -B
 
 # Copiar código fuente
 COPY src/ src/
 
 # Compilar y empaquetar la aplicación
-RUN mvn clean package -DskipTests -B
+RUN ./mvnw clean package -DskipTests -B
 
 # ETAPA 2: Runtime
-FROM openjdk:21-jdk-alpine AS runtime
+FROM eclipse-temurin:21-jre-alpine AS runtime
 
 # Crear usuario no privilegiado para seguridad
 RUN addgroup -g 1001 -S caribe && \
