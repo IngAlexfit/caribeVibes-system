@@ -163,4 +163,16 @@ export class BookingService {
 
     return this.http.post(`${this.API_URL}/${bookingId}/activities`, null, { params });
   }
+
+  /**
+   * @method downloadVoucher
+   * @description Descarga el voucher PDF de una reserva
+   * @param {number} bookingId - ID de la reserva
+   * @returns {Observable<Blob>} Archivo PDF como blob
+   */
+  downloadVoucher(bookingId: number): Observable<Blob> {
+    return this.http.get(`${this.API_URL}/${bookingId}/voucher`, { 
+      responseType: 'blob' 
+    });
+  }
 }

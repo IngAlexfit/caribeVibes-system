@@ -20,7 +20,7 @@
         <i class="fas fa-clock"></i>
       </div>
       <div class="stat-info">
-        <h3>{{ pendingBookingsCount }}</h3>
+        <h3>{{ bookings.filter(b => b.status === 'PENDING').length }}</h3>
         <p>Pendientes</p>
       </div>
     </div>
@@ -29,7 +29,7 @@
         <i class="fas fa-check-circle"></i>
       </div>
       <div class="stat-info">
-        <h3>{{ confirmedBookingsCount }}</h3>
+        <h3>{{ bookings.filter(b => b.status === 'CONFIRMED').length }}</h3>
         <p>Confirmadas</p>
       </div>
     </div>

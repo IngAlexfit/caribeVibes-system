@@ -95,6 +95,68 @@
   }
 }
 
+// Stats Section
+.stats-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+
+  @include mobile {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: $shadow-md;
+    padding: 25px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: $shadow-lg;
+    }
+
+    .stat-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: $gradient-primary;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+
+      i {
+        font-size: 1.5rem;
+        color: white;
+      }
+    }
+
+    .stat-info {
+      flex: 1;
+
+      h3 {
+        margin: 0 0 5px 0;
+        font-size: 2rem;
+        font-weight: 700;
+        color: $text-primary;
+      }
+
+      p {
+        margin: 0;
+        color: $text-secondary;
+        font-size: 0.9rem;
+        font-weight: 500;
+      }
+    }
+  }
+}
+
 .loading-container {
   display: flex;
   justify-content: center;
@@ -106,6 +168,7 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+  margin-bottom: 30px;
 }
 
 .booking-card {
@@ -118,6 +181,84 @@
   &:hover {
     transform: translateY(-2px);
     box-shadow: $shadow-lg;
+  }
+
+  .hotel-preview {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+    padding: 20px;
+    background: $bg-light;
+    border-radius: 10px;
+
+    @include mobile {
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .hotel-image {
+      width: 80px;
+      height: 60px;
+      border-radius: 8px;
+      overflow: hidden;
+      flex-shrink: 0;
+
+      @include mobile {
+        width: 100%;
+        height: 120px;
+      }
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    }
+
+    .hotel-info {
+      flex: 1;
+
+      h4 {
+        margin: 0 0 5px 0;
+        color: $text-primary;
+        font-size: 1.1rem;
+        font-weight: 600;
+      }
+
+      .hotel-location {
+        color: $text-secondary;
+        font-size: 0.85rem;
+        margin-bottom: 8px;
+
+        i {
+          margin-right: 5px;
+          color: $danger-color;
+        }
+      }
+
+      .hotel-rating {
+        .stars {
+          display: flex;
+          gap: 2px;
+
+          i {
+            font-size: 0.8rem;
+            color: $text-muted;
+
+            &.active {
+              color: $warning-color;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .booking-info {
+    .total-price {
+      font-weight: 700;
+      color: $success-color;
+    }
   }
 
   .booking-header {
@@ -137,6 +278,14 @@
     .booking-id {
       font-size: 1.1rem;
       color: $text-primary;
+
+      .confirmation-code {
+        display: block;
+        font-size: 0.9rem;
+        color: $text-secondary;
+        font-weight: normal;
+        margin-top: 5px;
+      }
     }
 
     .status-badge {
@@ -146,59 +295,440 @@
       font-weight: 600;
       text-transform: uppercase;
 
-      &.status-pending {
-        background: rgba($warning-color, 0.1);
-        color: $warning-color;
-      }
-
-      &.status-confirmed {
-        background: rgba($info-color, 0.1);
-        color: $info-color;
-      }
-
-      &.status-completed {
-        background: rgba($success-color, 0.1);
-        color: $success-color;
-      }
-
-      &.status-cancelled {
-        background: rgba($danger-color, 0.1);
-        color: $danger-color;
-      }
-
-      &.badge-pending {
-        background: rgba($warning-color, 0.1);
-        color: $warning-color;
-      }
-
       &.badge-success {
         background: rgba($success-color, 0.1);
         color: $success-color;
+        border: 1px solid rgba($success-color, 0.3);
       }
 
       &.badge-warning {
         background: rgba($warning-color, 0.1);
         color: $warning-color;
+        border: 1px solid rgba($warning-color, 0.3);
       }
 
       &.badge-danger {
         background: rgba($danger-color, 0.1);
         color: $danger-color;
+        border: 1px solid rgba($danger-color, 0.3);
       }
 
       &.badge-info {
         background: rgba($info-color, 0.1);
         color: $info-color;
+        border: 1px solid rgba($info-color, 0.3);
       }
 
       &.badge-secondary {
         background: rgba($text-secondary, 0.1);
         color: $text-secondary;
+        border: 1px solid rgba($text-secondary, 0.3);
       }
     }
   }
 
-  .booking-details {
+  .booking-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+
+    @include mobile {
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .booking-main-info {
+      flex: 1;
+
+      .hotel-info {
+        margin-bottom: 15px;
+
+        h4 {
+          margin: 0 0 5px 0;
+          color: $text-primary;
+          font-size: 1.2rem;
+          font-weight: 600;
+        }
+
+        .hotel-location {
+          color: $text-secondary;
+          font-size: 0.9rem;
+          margin: 0;
+
+          i {
+            margin-right: 5px;
+            color: $danger-color;
+          }
+        }
+      }
+
+      .booking-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+
+        @include mobile {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+
+        .info-item {
+          display: flex;
+          align-items: center;
+          color: $text-secondary;
+          font-size: 0.9rem;
+
+          i {
+            margin-right: 8px;
+            color: $primary-color;
+            width: 16px;
+            text-align: center;
+          }
+        }
+      }
+    }
+
+    .booking-actions {
+      display: flex;
+      gap: 10px;
+      flex-shrink: 0;
+
+      @include mobile {
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        padding: 8px 12px;
+        border-radius: $border-radius-sm;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+
+        @include mobile {
+          flex: 1;
+          min-width: 0;
+          padding: 8px 10px;
+        }
+
+        i {
+          margin-right: 5px;
+
+          @include mobile {
+            margin-right: 3px;
+          }
+        }
+
+        &.btn-sm {
+          padding: 6px 10px;
+          font-size: 0.8rem;
+        }
+      }
+    }
+  }
+}
+
+// Pagination
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 30px;
+  padding: 20px;
+  background: white;
+  border-radius: 15px;
+  box-shadow: $shadow-md;
+
+  @include mobile {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .pagination {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 5px;
+
+    .page-item {
+      .page-link {
+        display: flex;
+        align-items: center;
+        padding: 8px 12px;
+        border: 1px solid $border-light;
+        border-radius: $border-radius-sm;
+        background: white;
+        color: $text-primary;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+
+        &:hover:not(:disabled) {
+          background: $primary-color;
+          color: white;
+          border-color: $primary-color;
+        }
+
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        i {
+          margin: 0 5px;
+        }
+      }
+
+      &.active .page-link {
+        background: $primary-color;
+        color: white;
+        border-color: $primary-color;
+      }
+
+      &.disabled .page-link {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  .pagination-info {
+    color: $text-secondary;
+    font-size: 0.9rem;
+
+    @include mobile {
+      text-align: center;
+    }
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 15px;
+  box-shadow: $shadow-md;
+
+  i {
+    font-size: 4rem;
+    color: $text-muted;
+    margin-bottom: 20px;
+  }
+
+  h3 {
+    color: $text-primary;
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+  }
+
+  p {
+    color: $text-secondary;
+    margin-bottom: 25px;
+    font-size: 1rem;
+  }
+
+  .btn {
+    padding: 12px 24px;
+    border-radius: $border-radius-sm;
+    font-weight: 600;
+
+    i {
+      margin-right: 8px;
+      font-size: 1rem;
+    }
+  }
+}
+
+// Button utilities
+.btn-sm {
+  padding: 6px 12px !important;
+  font-size: 0.8rem !important;
+}
+
+.btn-outline-primary {
+  color: $primary-color;
+  border-color: $primary-color;
+
+  &:hover {
+    background: $primary-color;
+    color: white;
+  }
+}
+
+.btn-outline-secondary {
+  color: $text-secondary;
+  border-color: $text-secondary;
+
+  &:hover {
+    background: $text-secondary;
+    color: white;
+  }
+}
+
+.btn-outline-danger {
+  color: $danger-color;
+  border-color: $danger-color;
+
+  &:hover {
+    background: $danger-color;
+    color: white;
+  }
+}
+
+.btn-outline-success {
+  color: $success-color;
+  border-color: $success-color;
+
+  &:hover {
+    background: $success-color;
+    color: white;
+  }
+}
+
+.btn-outline-info {
+  color: $info-color;
+  border-color: $info-color;
+
+  &:hover {
+    background: $info-color;
+    color: white;
+  }
+}
+
+.btn-primary {
+  background: $primary-color;
+  border-color: $primary-color;
+  color: white;
+
+  &:hover {
+    background: darken($primary-color, 10%);
+    border-color: darken($primary-color, 10%);
+  }
+}
+
+.btn-secondary {
+  background: $text-secondary;
+  border-color: $text-secondary;
+  color: white;
+
+  &:hover {
+    background: darken($text-secondary, 10%);
+    border-color: darken($text-secondary, 10%);
+  }
+}
+
+// Quick view modal styles for SweetAlert2
+::ng-deep .quick-view-container {
+  .quick-view-modal {
+    text-align: left;
+
+    .booking-summary {
+      margin-bottom: 20px;
+
+      .summary-item {
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        .status-pending {
+          color: $warning-color;
+        }
+
+        .status-confirmed {
+          color: $success-color;
+        }
+
+        .status-cancelled {
+          color: $danger-color;
+        }
+
+        .status-completed {
+          color: $info-color;
+        }
+      }
+    }
+
+    .modal-actions {
+      text-align: center;
+      margin-top: 20px;
+
+      .btn {
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-weight: 600;
+      }
+    }
+  }
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+
+  &.status-pending {
+    background: rgba($warning-color, 0.1);
+    color: $warning-color;
+  }
+
+  &.status-confirmed {
+    background: rgba($info-color, 0.1);
+    color: $info-color;
+  }
+
+  &.status-completed {
+    background: rgba($success-color, 0.1);
+    color: $success-color;
+  }
+
+  &.status-cancelled {
+    background: rgba($danger-color, 0.1);
+    color: $danger-color;
+  }
+
+  &.badge-pending {
+    background: rgba($warning-color, 0.1);
+    color: $warning-color;
+  }
+
+  &.badge-success {
+    background: rgba($success-color, 0.1);
+    color: $success-color;
+  }
+
+  &.badge-warning {
+    background: rgba($warning-color, 0.1);
+    color: $warning-color;
+  }
+
+  &.badge-danger {
+    background: rgba($danger-color, 0.1);
+    color: $danger-color;
+  }
+
+  &.badge-info {
+    background: rgba($info-color, 0.1);
+    color: $info-color;
+  }
+
+  &.badge-secondary {
+    background: rgba($text-secondary, 0.1);
+    color: $text-secondary;
+  }
+}
+
+.booking-details {
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
@@ -252,7 +782,6 @@
       }
     }
   }
-}
 
 .empty-state {
   text-align: center;

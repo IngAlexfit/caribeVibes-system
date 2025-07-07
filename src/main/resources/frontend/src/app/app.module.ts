@@ -24,6 +24,7 @@ import { LoginComponent } from './pages/auth/login/login.component';
 import { RegisterComponent } from './pages/auth/register/register.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { BookingsComponent } from './pages/bookings/bookings.component';
+import { BookingDetailComponent } from './pages/booking-detail/booking-detail.component';
 import { ContactComponent } from './pages/contact/contact.component';
 
 /**
@@ -45,6 +46,7 @@ import { ContactComponent } from './pages/contact/contact.component';
     RegisterComponent,
     DashboardComponent,
     BookingsComponent,
+    BookingDetailComponent,
     ContactComponent
   ],
   imports: [

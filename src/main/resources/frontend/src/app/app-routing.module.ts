@@ -13,6 +13,7 @@ import { LoginComponent } from './pages/auth/login/login.component';
 import { RegisterComponent } from './pages/auth/register/register.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { BookingsComponent } from './pages/bookings/bookings.component';
+import { BookingDetailComponent } from './pages/booking-detail/booking-detail.component';
 import { ContactComponent } from './pages/contact/contact.component';
 
 /**
@@ -53,6 +54,11 @@ const routes: Routes = [
   { 
     path: 'bookings', 
     component: BookingsComponent,
+    canActivate: [AuthGuard]
+  },
+  { 
+    path: 'bookings/:id', 
+    component: BookingDetailComponent,
     canActivate: [AuthGuard]
   },
   { path: 'reservas', redirectTo: 'bookings', pathMatch: 'full' },

@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { BookingService } from '../../core/services/booking.service';
 import { BookingResponse } from '../../core/models/booking.model';
+import { PageResponse } from '../../core/models/common.model';
 import Swal from 'sweetalert2';
 
 /**
@@ -42,11 +44,34 @@ export class BookingsComponent implements OnInit {
   /** @property {boolean} showDetailsModal - Controla la visibilidad del modal de detalles */
   showDetailsModal = false;
 
+  // Pagination properties
+  /** @property {number} currentPage - Página actual */
+  currentPage = 0;
+  
+  /** @property {number} pageSize - Tamaño de página */
+  pageSize = 10;
+  
+  /** @property {number} totalElements - Total de elementos */
+  totalElements = 0;
+  
+  /** @property {number} totalPages - Total de páginas */
+  totalPages = 0;
+  
+  /** @property {boolean} hasNext - Indica si hay página siguiente */
+  hasNext = false;
+  
+  /** @property {boolean} hasPrevious - Indica si hay página anterior */
+  hasPrevious = false;
+
   /**
    * @constructor
    * @param {BookingService} bookingService - Servicio para gestionar las reservas
+   * @param {Router} router - Router para navegación
    */
-  constructor(private bookingService: BookingService) {}
+  constructor(
+    private bookingService: BookingService,
+    private router: Router
+  ) {}
 
   /**
    * @method ngOnInit
@@ -59,20 +84,30 @@ export class BookingsComponent implements OnInit {
   /**
    * @method loadBookings
    * @private
-   * @description Carga todas las reservas del usuario desde el servidor
+   * @description Carga las reservas del usuario con paginación
    */
   private loadBookings(): void {
     this.isLoading = true;
     
-    this.bookingService.getMyBookings().subscribe({
-      next: (response) => {
+    this.bookingService.getMyBookings(this.currentPage, this.pageSize).subscribe({
+      next: (response: PageResponse<BookingResponse>) => {
         this.bookings = response.content;
-        this.filteredBookings = response.content;
+        this.totalElements = response.totalElements;
+        this.totalPages = response.totalPages;
+        this.hasNext = !response.last;
+        this.hasPrevious = !response.first;
         this.isLoading = false;
+        this.filterBookings();
       },
       error: (error: any) => {
         console.error('Error loading bookings:', error);
         this.isLoading = false;
+        Swal.fire({
+          title: 'Error',
+          text: 'No se pudieron cargar las reservas. Por favor, intenta de nuevo.',
+          icon: 'error',
+          confirmButtonText: 'Aceptar'
+        });
       }
     });
   }
@@ -94,6 +129,70 @@ export class BookingsComponent implements OnInit {
     this.filteredBookings = this.bookings.filter(booking => {
       return !this.selectedStatus || booking.status === this.selectedStatus;
     });
+  }
+
+  /**
+   * @method changePage
+   * @description Cambia la página actual y recarga los datos
+   * @param {number} page - Número de página
+   */
+  changePage(page: number): void {
+    if (page >= 0 && page < this.totalPages) {
+      this.currentPage = page;
+      this.loadBookings();
+    }
+  }
+
+  /**
+   * @method nextPage
+   * @description Navega a la página siguiente
+   */
+  nextPage(): void {
+    if (this.hasNext) {
+      this.currentPage++;
+      this.loadBookings();
+    }
+  }
+
+  /**
+   * @method previousPage
+   * @description Navega a la página anterior
+   */
+  previousPage(): void {
+    if (this.hasPrevious) {
+      this.currentPage--;
+      this.loadBookings();
+    }
+  }
+
+  /**
+   * @method goToPage
+   * @description Navega a una página específica
+   * @param {number} page - Número de página al que navegar
+   */
+  goToPage(page: number): void {
+    if (page >= 0 && page < this.totalPages) {
+      this.currentPage = page;
+      this.loadBookings();
+    }
+  }
+
+  /**
+   * @method getPageNumbers
+   * @description Obtiene los números de página para mostrar en la paginación
+   * @returns {number[]} Array de números de página
+   */
+  getPageNumbers(): number[] {
+    const pages: number[] = [];
+    const maxPages = Math.min(this.totalPages, 5); // Mostrar un máximo de 5 números de página
+    const startPage = Math.max(0, this.currentPage - 2);
+    const endPage = Math.min(this.totalPages - 1, startPage + maxPages - 1);
+    
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    
+    return pages;
   }
 
   /**
@@ -185,17 +284,26 @@ export class BookingsComponent implements OnInit {
 
   /**
    * @method viewBookingDetails
-   * @description Muestra los detalles de una reserva específica en un modal
+   * @description Navega a la página de detalles de la reserva
    * @param {number} bookingId - ID de la reserva a visualizar
    */
   viewBookingDetails(bookingId: number): void {
+    this.router.navigate(['/bookings', bookingId]);
+  }
+
+  /**
+   * @method quickViewBooking
+   * @description Muestra un modal rápido con información básica de la reserva
+   * @param {number} bookingId - ID de la reserva a visualizar
+   */
+  quickViewBooking(bookingId: number): void {
     this.isLoading = true;
     
     this.bookingService.getBookingById(bookingId).subscribe({
       next: (booking) => {
         this.isLoading = false;
         this.selectedBooking = booking;
-        this.showBookingDetailsModal(booking);
+        this.showQuickViewModal(booking);
       },
       error: (error) => {
         this.isLoading = false;
@@ -211,205 +319,123 @@ export class BookingsComponent implements OnInit {
   }
 
   /**
-   * @method showBookingDetailsModal
-   * @description Muestra el modal con los detalles de la reserva
+   * @method showQuickViewModal
+   * @description Muestra un modal condensado con información básica de la reserva
    * @param {BookingResponse} booking - Datos de la reserva
    */
-  private showBookingDetailsModal(booking: BookingResponse): void {
-    // Extract hotel information with null checks
-    const hotelName = booking.hotel?.name || booking.hotelName || 'Hotel no especificado';
-    const hotelLocation = booking.hotel?.location || 'Ubicación no especificada';
-    const hotelImageUrl = booking.hotel?.imageUrl || '';
-    const hotelRating = booking.hotel?.rating || 0;
+  private showQuickViewModal(booking: BookingResponse): void {
+    const nights = Math.ceil((new Date(booking.checkOutDate).getTime() - new Date(booking.checkInDate).getTime()) / (1000 * 60 * 60 * 24));
     
-    // Extract room type information with null checks
-    const roomTypeName = booking.roomType?.name || booking.roomTypeName || 'Tipo de habitación no especificado';
-    const roomTypeDescription = booking.roomType?.description || '';
-    const roomTypeCapacity = booking.roomType?.maxOccupancy || 0;
-    const roomTypePrice = booking.roomType?.pricePerNight || 0;
-    
-    // Extract user information with null checks
-    const userName = booking.user?.name || 'Usuario no especificado';
-    const userEmail = booking.user?.email || '';
-    
-    // Extract guest and room information with fallback to legacy fields
-    const numGuests = booking.numGuests || booking.guests || 0;
-    const numRooms = booking.numRooms || 1;
-    
-    // Build activities HTML with improved formatting
-    const activitiesHtml = booking.activities && booking.activities.length > 0 
-      ? `<div class="activities-section">
-           <h5><i class="fas fa-star text-warning"></i> Actividades Incluidas (${booking.activities.length}):</h5>
-           <div class="activities-grid">
-             ${booking.activities.map(activity => 
-               `<div class="activity-card">
-                  <div class="activity-header">
-                    <h6>${activity.activity?.name || activity.activityName || 'Actividad sin nombre'}</h6>
-                    <span class="activity-price">${this.formatCurrency(activity.activity?.price || activity.pricePerPerson || 0)}</span>
-                  </div>
-                  <p class="activity-description">${activity.activity?.description || 'Sin descripción'}</p>
-                  <div class="activity-details">
-                    <div class="activity-quantity">
-                      <small class="text-muted">
-                        <i class="fas fa-hashtag"></i> 
-                        Cantidad: ${activity.quantity || 1}
-                      </small>
-                    </div>
-                    ${activity.scheduledDate ? `
-                      <div class="activity-date">
-                        <small class="text-muted">
-                          <i class="fas fa-calendar-alt"></i> 
-                          Fecha programada: ${new Date(activity.scheduledDate).toLocaleDateString('es-ES')}
-                        </small>
-                      </div>
-                    ` : ''}
-                  </div>
-                </div>`
-             ).join('')}
-           </div>
-         </div>`
-      : `<div class="activities-section">
-           <h5><i class="fas fa-star text-muted"></i> Actividades:</h5>
-           <p class="text-muted"><em>No se han incluido actividades en esta reserva.</em></p>
-         </div>`;
-
-    const specialRequestsHtml = booking.specialRequests 
-      ? `<div class="special-requests-section">
-           <h5><i class="fas fa-comment text-info"></i> Solicitudes Especiales:</h5>
-           <div class="special-requests-content">
-             <p>${booking.specialRequests}</p>
-           </div>
-         </div>`
-      : '';
-
-    // Calculate nights
-    const checkInDate = new Date(booking.checkInDate);
-    const checkOutDate = new Date(booking.checkOutDate);
-    const nights = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24));
-
     Swal.fire({
-      title: `<i class="fas fa-info-circle"></i> Detalles de Reserva #${booking.id}`,
+      title: `<i class="fas fa-info-circle"></i> Reserva #${booking.id}`,
       html: `
-        <div class="booking-details-modal">
-          <div class="hotel-info-section">
-            <div class="hotel-header">
-              ${hotelImageUrl ? `<img src="${hotelImageUrl}" alt="${hotelName}" class="hotel-image"/>` : ''}
-              <div class="hotel-details">
-                <h4><i class="fas fa-hotel text-primary"></i> ${hotelName}</h4>
-                <p class="hotel-location">
-                  <i class="fas fa-map-marker-alt text-danger"></i> ${hotelLocation}
-                </p>
-                ${hotelRating > 0 ? `
-                  <div class="hotel-rating">
-                    <div class="stars">
-                      ${Array.from({length: 5}, (_, i) => 
-                        `<i class="fas fa-star ${i < hotelRating ? 'text-warning' : 'text-muted'}"></i>`
-                      ).join('')}
-                    </div>
-                    <span class="rating-text">(${hotelRating}/5)</span>
-                  </div>
-                ` : ''}
-              </div>
+        <div class="quick-view-modal">
+          <div class="booking-summary">
+            <div class="summary-item">
+              <strong>Hotel:</strong> ${booking.hotel?.name || 'No especificado'}
+            </div>
+            <div class="summary-item">
+              <strong>Fechas:</strong> ${this.formatDate(booking.checkInDate)} - ${this.formatDate(booking.checkOutDate)}
+            </div>
+            <div class="summary-item">
+              <strong>Duración:</strong> ${nights} noche${nights !== 1 ? 's' : ''}
+            </div>
+            <div class="summary-item">
+              <strong>Huéspedes:</strong> ${booking.numGuests}
+            </div>
+            <div class="summary-item">
+              <strong>Total:</strong> ${this.formatCurrency(booking.totalPrice)}
+            </div>
+            <div class="summary-item">
+              <strong>Estado:</strong> <span class="status-${booking.status.toLowerCase()}">${this.getStatusLabel(booking.status)}</span>
             </div>
           </div>
-          
-          <div class="booking-info-section">
-            <div class="info-grid">
-              <div class="info-card">
-                <div class="info-header">
-                  <i class="fas fa-calendar-check text-success"></i>
-                  <strong>Check-in</strong>
-                </div>
-                <div class="info-value">${checkInDate.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
-              </div>
-              
-              <div class="info-card">
-                <div class="info-header">
-                  <i class="fas fa-calendar-times text-warning"></i>
-                  <strong>Check-out</strong>
-                </div>
-                <div class="info-value">${checkOutDate.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
-              </div>
-              
-              <div class="info-card">
-                <div class="info-header">
-                  <i class="fas fa-moon text-info"></i>
-                  <strong>Noches</strong>
-                </div>
-                <div class="info-value">${nights} noche${nights !== 1 ? 's' : ''}</div>
-              </div>
-              
-              <div class="info-card">
-                <div class="info-header">
-                  <i class="fas fa-users text-primary"></i>
-                  <strong>Huéspedes</strong>
-                </div>
-                <div class="info-value">${numGuests} huésped${numGuests !== 1 ? 'es' : ''}</div>
-              </div>
-              
-              <div class="info-card">
-                <div class="info-header">
-                  <i class="fas fa-bed text-secondary"></i>
-                  <strong>Habitaciones</strong>
-                </div>
-                <div class="info-value">${numRooms} habitación${numRooms !== 1 ? 'es' : ''}</div>
-              </div>
-              
-              <div class="info-card">
-                <div class="info-header">
-                  <i class="fas fa-door-open text-info"></i>
-                  <strong>Tipo de Habitación</strong>
-                </div>
-                <div class="info-value">${roomTypeName}</div>
-                ${roomTypeDescription ? `<div class="info-sub">${roomTypeDescription}</div>` : ''}
-                ${roomTypeCapacity > 0 ? `<div class="info-sub">Capacidad: ${roomTypeCapacity} personas</div>` : ''}
-                ${roomTypePrice > 0 ? `<div class="info-sub">Precio: ${this.formatCurrency(roomTypePrice)}/noche</div>` : ''}
-              </div>
-            </div>
+          <div class="modal-actions">
+            <button class="btn btn-primary" onclick="window.location.href='/bookings/${booking.id}'">
+              <i class="fas fa-eye"></i> Ver detalles completos
+            </button>
           </div>
-          
-          <div class="status-price-section">
-            <div class="status-info">
-              <div class="info-header">
-                <i class="fas fa-info-circle"></i>
-                <strong>Estado</strong>
-              </div>
-              <span class="status-badge status-${booking.status.toLowerCase()}">${this.getStatusLabel(booking.status)}</span>
-            </div>
-            
-            <div class="price-info">
-              <div class="info-header">
-                <i class="fas fa-dollar-sign text-success"></i>
-                <strong>Total</strong>
-              </div>
-              <div class="total-amount">${this.formatCurrency(booking.totalPrice)}</div>
-            </div>
-          </div>
-          
-          <div class="booking-meta-section">
-            <div class="meta-item">
-              <i class="fas fa-calendar-plus text-muted"></i>
-              <strong>Fecha de Reserva:</strong>
-              <span>${new Date(booking.bookingDate).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-            </div>
-            <div class="meta-item">
-              <i class="fas fa-user text-muted"></i>
-              <strong>Reservado por:</strong>
-              <span>${userName}${userEmail ? ` (${userEmail})` : ''}</span>
-            </div>
-          </div>
-          
-          ${activitiesHtml}
-          ${specialRequestsHtml}
         </div>
       `,
-      width: 800,
-      confirmButtonText: 'Cerrar',
-      confirmButtonColor: '#007bff',
+      width: 500,
+      showConfirmButton: false,
+      showCloseButton: true,
       customClass: {
-        htmlContainer: 'booking-details-container'
+        htmlContainer: 'quick-view-container'
       }
     });
+  }
+  /**
+   * @method downloadVoucher
+   * @description Descarga el voucher de una reserva
+   * @param {number} bookingId - ID de la reserva
+   */
+  downloadVoucher(bookingId: number): void {
+    // Por ahora, muestra una implementación de marcador de posición
+    Swal.fire({
+      title: 'Próximamente',
+      text: 'La funcionalidad de descarga de vouchers estará disponible pronto.',
+      icon: 'info',
+      confirmButtonText: 'Entendido'
+    });
+  }
+
+  /**
+   * @method trackByBookingId
+   * @description Track by function for ngFor optimization
+   * @param {number} index - Index of the item
+   * @param {BookingResponse} booking - Booking item
+   * @returns {number} Unique identifier
+   */
+  trackByBookingId(index: number, booking: BookingResponse): number {
+    return booking.id;
+  }
+
+  /**
+   * @method getPendingCount
+   * @description Get count of pending bookings
+   * @returns {number} Count of pending bookings
+   */
+  get pendingBookingsCount(): number {
+    return this.bookings.filter(b => b.status === 'PENDING').length;
+  }
+
+  /**
+   * @method getConfirmedCount
+   * @description Get count of confirmed bookings
+   * @returns {number} Count of confirmed bookings
+   */
+  get confirmedBookingsCount(): number {
+    return this.bookings.filter(b => b.status === 'CONFIRMED').length;
+  }
+
+  /**
+   * @method getCompletedCount
+   * @description Get count of completed bookings
+   * @returns {number} Count of completed bookings
+   */
+  get completedBookingsCount(): number {
+    return this.bookings.filter(b => b.status === 'COMPLETED').length;
+  }
+
+  /**
+   * @method getCancelledCount
+   * @description Get count of cancelled bookings
+   * @returns {number} Count of cancelled bookings
+   */
+  get cancelledBookingsCount(): number {
+    return this.bookings.filter(b => b.status === 'CANCELLED').length;
+  }
+
+  /**
+   * @method getDisplayedRange
+   * @description Get the displayed range for pagination
+   * @returns {object} Object with start and end values
+   */
+  getDisplayedRange(): { start: number; end: number } {
+    const start = (this.currentPage * this.pageSize) + 1;
+    const end = Math.min((this.currentPage + 1) * this.pageSize, this.totalElements);
+    return { start, end };
   }
 
   /**

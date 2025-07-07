@@ -1,0 +1,340 @@
+<div class="booking-detail-container">
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-spinner">
+    <app-loading></app-loading>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="!isLoading && errorMessage" class="error-container">
+    <div class="error-message">
+      <i class="fas fa-exclamation-triangle"></i>
+      <h3>{{ errorMessage }}</h3>
+      <button class="btn btn-primary" (click)="goBack()">
+        <i class="fas fa-arrow-left"></i>
+        Volver a Reservas
+      </button>
+    </div>
+  </div>
+
+  <!-- Booking Detail Content -->
+  <div *ngIf="!isLoading && booking" class="booking-detail-content">
+    <!-- Header -->
+    <div class="booking-header">
+      <div class="header-left">
+        <button class="btn btn-outline-secondary back-btn" (click)="goBack()">
+          <i class="fas fa-arrow-left"></i>
+          Volver a Reservas
+        </button>
+      </div>
+      <div class="header-center">
+        <h1>
+          <i class="fas fa-calendar-check"></i>
+          Reserva #{{ booking.id }}
+        </h1>
+        <p class="booking-date">
+          <i class="fas fa-calendar"></i>
+          Reservado el {{ formatDate(booking.bookingDate) }}
+        </p>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-outline-primary" (click)="shareBooking()">
+          <i class="fas fa-share-alt"></i>
+          Compartir
+        </button>
+        <button 
+          class="btn btn-primary" 
+          (click)="downloadVoucher()"
+          [disabled]="isDownloadingVoucher">
+          <i class="fas fa-download" [class.fa-spin]="isDownloadingVoucher"></i>
+          {{ isDownloadingVoucher ? 'Descargando...' : 'Descargar Voucher' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Status Banner -->
+    <div class="status-banner" [class]="getStatusClass(booking.status)">
+      <div class="status-content">
+        <div class="status-icon">
+          <i class="fas fa-info-circle"></i>
+        </div>
+        <div class="status-text">
+          <strong>Estado: {{ getStatusText(booking.status) }}</strong>
+          <p *ngIf="booking.status === 'PENDING'">
+            Tu reserva está pendiente de confirmación. Te notificaremos cuando sea aprobada.
+          </p>
+          <p *ngIf="booking.status === 'CONFIRMED'">
+            ¡Excelente! Tu reserva ha sido confirmada. ¡Prepárate para tu aventura caribeña!
+          </p>
+          <p *ngIf="booking.status === 'CANCELLED'">
+            Esta reserva ha sido cancelada. Si tienes preguntas, contacta con nuestro equipo.
+          </p>
+          <p *ngIf="booking.status === 'COMPLETED'">
+            ¡Esperamos que hayas disfrutado tu experiencia! Déjanos un comentario.
+          </p>
+        </div>
+        <div class="status-actions" *ngIf="canCancelBooking()">
+          <button class="btn btn-outline-danger btn-sm" (click)="cancelBooking()">
+            <i class="fas fa-times"></i>
+            Cancelar Reserva
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="booking-content-grid">
+      <!-- Hotel Information -->
+      <div class="hotel-section card">
+        <div class="card-header">
+          <h3>
+            <i class="fas fa-hotel"></i>
+            Información del Hotel
+          </h3>
+        </div>
+        <div class="card-body">
+          <div class="hotel-info">
+            <div class="hotel-image" *ngIf="booking.hotel.imageUrl">
+              <img [src]="booking.hotel.imageUrl" [alt]="booking.hotel.name || 'Hotel'" />
+            </div>
+            <div class="hotel-details">
+              <h4>{{ booking.hotel.name || 'Hotel no especificado' }}</h4>
+              <p class="hotel-location">
+                <i class="fas fa-map-marker-alt"></i>
+                {{ booking.hotel.location || 'Ubicación no especificada' }}
+              </p>
+              <div class="hotel-rating" *ngIf="booking.hotel.rating">
+                <div class="stars">
+                  <i 
+                    *ngFor="let star of [1,2,3,4,5]" 
+                    class="fas fa-star" 
+                    [class.active]="star <= booking.hotel.rating">
+                  </i>
+                </div>
+                <span class="rating-text">({{ booking.hotel.rating }}/5)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Booking Summary -->
+      <div class="booking-summary card">
+        <div class="card-header">
+          <h3>
+            <i class="fas fa-clipboard-list"></i>
+            Resumen de la Reserva
+          </h3>
+        </div>
+        <div class="card-body">
+          <div class="summary-grid">
+            <div class="summary-item">
+              <div class="item-label">
+                <i class="fas fa-calendar-check"></i>
+                Check-in
+              </div>
+              <div class="item-value">
+                {{ formatDate(booking.checkInDate) }}
+              </div>
+            </div>
+            <div class="summary-item">
+              <div class="item-label">
+                <i class="fas fa-calendar-times"></i>
+                Check-out
+              </div>
+              <div class="item-value">
+                {{ formatDate(booking.checkOutDate) }}
+              </div>
+            </div>
+            <div class="summary-item">
+              <div class="item-label">
+                <i class="fas fa-moon"></i>
+                Noches
+              </div>
+              <div class="item-value">
+                {{ calculateNights() }}
+              </div>
+            </div>
+            <div class="summary-item">
+              <div class="item-label">
+                <i class="fas fa-users"></i>
+                Huéspedes
+              </div>
+              <div class="item-value">
+                {{ booking.numGuests }}
+              </div>
+            </div>
+            <div class="summary-item">
+              <div class="item-label">
+                <i class="fas fa-bed"></i>
+                Habitaciones
+              </div>
+              <div class="item-value">
+                {{ booking.numRooms }}
+              </div>
+            </div>
+            <div class="summary-item">
+              <div class="item-label">
+                <i class="fas fa-calendar-plus"></i>
+                Fecha de Reserva
+              </div>
+              <div class="item-value">
+                {{ formatDate(booking.bookingDate) }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Room Information -->
+      <div class="room-section card">
+        <div class="card-header">
+          <h3>
+            <i class="fas fa-door-open"></i>
+            Información de la Habitación
+          </h3>
+        </div>
+        <div class="card-body">
+          <div class="room-info">
+            <h4>{{ booking.roomType.name || 'Tipo de habitación no especificado' }}</h4>
+            <p class="room-description" *ngIf="booking.roomType.description">
+              {{ booking.roomType.description }}
+            </p>
+            <div class="room-details">
+              <div class="detail-item" *ngIf="booking.roomType.maxOccupancy">
+                <i class="fas fa-users"></i>
+                <span>Capacidad máxima: {{ booking.roomType.maxOccupancy }} personas</span>
+              </div>
+              <div class="detail-item" *ngIf="booking.roomType.pricePerNight">
+                <i class="fas fa-dollar-sign"></i>
+                <span>Precio por noche: {{ formatCurrency(booking.roomType.pricePerNight) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activities Section -->
+      <div class="activities-section card">
+        <div class="card-header">
+          <h3>
+            <i class="fas fa-star"></i>
+            Actividades Incluidas
+            <span class="activity-count" *ngIf="booking.activities?.length">
+              ({{ booking.activities.length }})
+            </span>
+          </h3>
+        </div>
+        <div class="card-body">
+          <div *ngIf="booking.activities?.length; else noActivities" class="activities-grid">
+            <div *ngFor="let activity of booking.activities" class="activity-card">
+              <div class="activity-header">
+                <h5>{{ activity.activity?.name || 'Actividad' }}</h5>
+                <span class="activity-price">
+                  {{ formatCurrency(activity.pricePerPerson || 0) }}
+                </span>
+              </div>
+              <p class="activity-description">
+                {{ activity.activity?.description || 'Sin descripción disponible' }}
+              </p>
+              <div class="activity-details">
+                <div class="detail-item">
+                  <i class="fas fa-hashtag"></i>
+                  <span>Cantidad: {{ activity.quantity }}</span>
+                </div>
+                <div class="detail-item">
+                  <i class="fas fa-calculator"></i>
+                  <span>Total: {{ formatCurrency(activity.totalPrice || 0) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <ng-template #noActivities>
+            <div class="no-activities">
+              <i class="fas fa-info-circle"></i>
+              <p>No se han incluido actividades adicionales en esta reserva.</p>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+
+      <!-- Special Requests -->
+      <div class="special-requests card" *ngIf="booking.specialRequests">
+        <div class="card-header">
+          <h3>
+            <i class="fas fa-comment"></i>
+            Solicitudes Especiales
+          </h3>
+        </div>
+        <div class="card-body">
+          <div class="request-content">
+            <p>{{ booking.specialRequests }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Price Breakdown -->
+      <div class="price-breakdown card">
+        <div class="card-header">
+          <h3>
+            <i class="fas fa-receipt"></i>
+            Desglose de Precios
+          </h3>
+        </div>
+        <div class="card-body">
+          <div class="price-details">
+            <div class="price-item">
+              <span class="price-label">Habitación ({{ calculateNights() }} noches)</span>
+              <span class="price-value">
+                {{ formatCurrency((booking.roomType.pricePerNight || 0) * calculateNights()) }}
+              </span>
+            </div>
+            <div class="price-item" *ngFor="let activity of booking.activities">
+              <span class="price-label">
+                {{ activity.activity?.name }} ({{ activity.quantity }})
+              </span>
+              <span class="price-value">
+                {{ formatCurrency(activity.totalPrice || 0) }}
+              </span>
+            </div>
+            <div class="price-divider"></div>
+            <div class="price-item price-total">
+              <span class="price-label">Total</span>
+              <span class="price-value">
+                {{ formatCurrency(booking.totalPrice) }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contact Information -->
+    <div class="contact-section card">
+      <div class="card-header">
+        <h3>
+          <i class="fas fa-phone"></i>
+          ¿Necesitas ayuda?
+        </h3>
+      </div>
+      <div class="card-body">
+        <div class="contact-info">
+          <p>Si tienes preguntas sobre tu reserva, no dudes en contactarnos:</p>
+          <div class="contact-methods">
+            <div class="contact-method">
+              <i class="fas fa-envelope"></i>
+              <span>reservas&#64;caribevibes.com</span>
+            </div>
+            <div class="contact-method">
+              <i class="fas fa-phone"></i>
+              <span>+57 1 234 5678</span>
+            </div>
+            <div class="contact-method">
+              <i class="fas fa-clock"></i>
+              <span>Atención: 24/7</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
