@@ -1,7 +1,25 @@
 # Dockerfile multi-stage para Caribe Vibes - Sistema de Gestión Turística
 
-# ETAPA 1: Construcción
-FROM eclipse-temurin:21-jdk-alpine AS builder
+# ETAPA 1: Construcción del Frontend Angular
+FROM node:20-alpine AS frontend-builder
+
+# Crear directorio de trabajo para el frontend
+WORKDIR /frontend
+
+# Copiar archivos de configuración de Node.js primero (para aprovechar cache de Docker)
+COPY src/main/resources/frontend/package*.json ./
+
+# Instalar dependencias de Node.js
+RUN npm ci --only=production
+
+# Copiar código fuente del frontend
+COPY src/main/resources/frontend/ ./
+
+# Compilar el frontend para producción
+RUN npm run build:prod
+
+# ETAPA 2: Construcción del Backend Spring Boot
+FROM eclipse-temurin:21-jdk-alpine AS backend-builder
 
 # Metadatos de la imagen
 LABEL maintainer="Caribe Vibes Team <desarrollo@caribevibes.com>"
@@ -25,13 +43,16 @@ RUN chmod +x mvnw
 # Descargar dependencias (se cachea si no cambia pom.xml)
 RUN ./mvnw dependency:go-offline -B
 
-# Copiar código fuente
+# Copiar código fuente del backend
 COPY src/ src/
+
+# Copiar el frontend compilado al directorio de recursos estáticos de Spring Boot
+COPY --from=frontend-builder /frontend/dist/caribe-vibes-frontend/ src/main/resources/static/
 
 # Compilar y empaquetar la aplicación
 RUN ./mvnw clean package -DskipTests -B
 
-# ETAPA 2: Runtime
+# ETAPA 3: Runtime
 FROM eclipse-temurin:21-jre-alpine AS runtime
 
 # Crear usuario no privilegiado para seguridad
@@ -51,18 +72,18 @@ RUN cp /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 # Crear directorios de trabajo
 WORKDIR /app
 
-# Copiar JAR desde la etapa de construcción
-COPY --from=builder /build/target/caribeVibes-*.jar app.jar
+# Copiar JAR desde la etapa de construcción del backend
+COPY --from=backend-builder /build/target/caribeVibes-*.jar app.jar
 
-# Crear directorios para logs y uploads
-RUN mkdir -p /var/log/caribe-vibes /var/caribe-vibes/uploads && \
-    chown -R caribe:caribe /var/log/caribe-vibes /var/caribe-vibes /app
+# Crear directorio para uploads temporales
+RUN mkdir -p /tmp/uploads && \
+    chown -R caribe:caribe /tmp/uploads /app
 
 # Cambiar al usuario no privilegiado
 USER caribe
 
 # Variables de entorno por defecto
-ENV SPRING_PROFILES_ACTIVE=prod
+ENV SPRING_PROFILES_ACTIVE=fly
 ENV JVM_OPTS="-Xms256m -Xmx512m -XX:+UseG1GC -XX:+UseStringDeduplication"
 
 # Exponer puerto

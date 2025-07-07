@@ -138,6 +138,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                path.equals("/api/destinations") ||
                path.equals("/api/hotels") ||
                path.equals("/api/experiences") ||
-               (path.equals("/api/contact/create") && "POST".equals(request.getMethod()));
+               (path.equals("/api/contact/create") && "POST".equals(request.getMethod())) ||
+               // No filtrar recursos estáticos del frontend Angular
+               path.equals("/") ||
+               path.equals("/index.html") ||
+               path.equals("/favicon.ico") ||
+               path.startsWith("/assets/") ||
+               path.startsWith("/static/") ||
+               path.matches(".*\\.(js|css|ico|png|svg|woff|woff2|ttf|eot|html)$") ||
+               // No filtrar rutas de Angular SPA (que no son APIs)
+               (!path.startsWith("/api/") && !path.contains("."));
     }
 }

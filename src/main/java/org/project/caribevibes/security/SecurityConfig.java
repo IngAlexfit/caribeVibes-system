@@ -89,8 +89,23 @@ public class SecurityConfig {
                 // Endpoints de health check
                 .requestMatchers("/api/health", "/api/actuator/health").permitAll()
                 
-                // Recursos estáticos
-                .requestMatchers("/api/static/**", "/api/assets/**", "/api/images/**").permitAll()
+                // Recursos estáticos del frontend Angular
+                .requestMatchers(
+                    "/",
+                    "/index.html",
+                    "/favicon.ico",
+                    "/assets/**",
+                    "/static/**",
+                    "/*.js",
+                    "/*.css",
+                    "/*.ico",
+                    "/*.png",
+                    "/*.svg",
+                    "/*.woff",
+                    "/*.woff2",
+                    "/*.ttf",
+                    "/*.eot"
+                ).permitAll()
                 
                 // Endpoints protegidos para usuarios autenticados
                 .requestMatchers("/api/bookings/**").hasRole("CLIENT")

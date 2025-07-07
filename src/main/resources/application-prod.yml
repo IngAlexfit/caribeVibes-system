@@ -89,19 +89,19 @@ server:
 
 logging:
   level:
-    'org.project.caribevibes': INFO
-    'org.springframework.security': WARN
-    'org.springframework.web': WARN
-    'org.hibernate': WARN
-    'com.zaxxer.hikari': WARN
-    'org.flywaydb': INFO
+    '[org.project.caribevibes]': INFO
+    '[org.springframework.security]': WARN
+    '[org.springframework.web]': WARN
+    '[org.hibernate]': WARN
+    '[com.zaxxer.hikari]': WARN
+    '[org.flywaydb]': INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-  file:
-    name: /var/log/caribe-dreams/application.log
-    max-size: 100MB
-    max-history: 30
+  # En Fly.io usamos solo logging a consola para evitar problemas de permisos
+  # file:
+  #   name: /var/log/caribe-dreams/application.log
+  #   max-size: 100MB
+  #   max-history: 30
     
 management:
   endpoints:
