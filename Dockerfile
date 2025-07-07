@@ -9,8 +9,8 @@ WORKDIR /frontend
 # Copiar archivos de configuración de Node.js primero (para aprovechar cache de Docker)
 COPY src/main/resources/frontend/package*.json ./
 
-# Instalar dependencias de Node.js
-RUN npm ci --only=production
+# Instalar dependencias de Node.js (incluyendo devDependencies para ng build)
+RUN npm ci
 
 # Copiar código fuente del frontend
 COPY src/main/resources/frontend/ ./
