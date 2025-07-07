@@ -65,15 +65,8 @@ USER caribe
 ENV SPRING_PROFILES_ACTIVE=prod
 ENV JVM_OPTS="-Xms256m -Xmx512m -XX:+UseG1GC -XX:+UseStringDeduplication"
 
-# Fly.io maneja automáticamente el puerto, pero dejamos 8080 como fallback
-ENV SERVER_PORT=8080
-
 # Exponer puerto
 EXPOSE 8080
-
-# Health check ajustado para Fly.io
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8080/actuator/health || exit 1
 
 # Comando de inicio con optimizaciones JVM y configuración para Fly.io
 ENTRYPOINT ["sh", "-c", "java $JVM_OPTS -Dserver.port=${PORT:-8080} -Dserver.address=0.0.0.0 -jar app.jar"]
