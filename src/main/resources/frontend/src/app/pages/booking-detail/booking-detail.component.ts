@@ -110,17 +110,45 @@ export class BookingDetailComponent implements OnInit, OnDestroy {
 
     this.isDownloadingVoucher = true;
     
-    // For now, show a placeholder implementation
-    // TODO: Implement actual voucher download when backend is ready
-    setTimeout(() => {
-      this.isDownloadingVoucher = false;
-      Swal.fire({
-        title: 'Próximamente',
-        text: 'La funcionalidad de descarga de vouchers estará disponible pronto.',
-        icon: 'info',
-        confirmButtonText: 'Entendido'
-      });
-    }, 1000);
+    this.bookingService.downloadVoucher(this.booking.id).subscribe({
+      next: (blob: Blob) => {
+        // Crear URL para el blob
+        const url = window.URL.createObjectURL(blob);
+        
+        // Crear elemento de descarga
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `voucher-reserva-${this.booking?.id}.pdf`;
+        
+        // Simular click para descargar
+        document.body.appendChild(link);
+        link.click();
+        
+        // Limpiar
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        this.isDownloadingVoucher = false;
+        
+        // Mostrar éxito
+        Swal.fire({
+          title: 'Voucher descargado',
+          text: 'El voucher se ha descargado correctamente.',
+          icon: 'success',
+          confirmButtonText: 'Entendido'
+        });
+      },
+      error: (error) => {
+        console.error('Error descargando voucher:', error);
+        this.isDownloadingVoucher = false;
+        Swal.fire({
+          title: 'Error',
+          text: 'Ocurrió un error al descargar el voucher. Por favor intente nuevamente.',
+          icon: 'error',
+          confirmButtonText: 'Entendido'
+        });
+      }
+    });
   }
 
   /**

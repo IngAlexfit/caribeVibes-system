@@ -371,12 +371,52 @@ export class BookingsComponent implements OnInit {
    * @param {number} bookingId - ID de la reserva
    */
   downloadVoucher(bookingId: number): void {
-    // Por ahora, muestra una implementación de marcador de posición
+    // Mostrar loading
     Swal.fire({
-      title: 'Próximamente',
-      text: 'La funcionalidad de descarga de vouchers estará disponible pronto.',
-      icon: 'info',
-      confirmButtonText: 'Entendido'
+      title: 'Descargando voucher...',
+      text: 'Por favor espere mientras se genera el documento.',
+      allowOutsideClick: false,
+      showConfirmButton: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
+    this.bookingService.downloadVoucher(bookingId).subscribe({
+      next: (blob: Blob) => {
+        // Crear URL para el blob
+        const url = window.URL.createObjectURL(blob);
+        
+        // Crear elemento de descarga
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `voucher-reserva-${bookingId}.pdf`;
+        
+        // Simular click para descargar
+        document.body.appendChild(link);
+        link.click();
+        
+        // Limpiar
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        // Mostrar éxito
+        Swal.fire({
+          title: 'Voucher descargado',
+          text: 'El voucher se ha descargado correctamente.',
+          icon: 'success',
+          confirmButtonText: 'Entendido'
+        });
+      },
+      error: (error) => {
+        console.error('Error descargando voucher:', error);
+        Swal.fire({
+          title: 'Error',
+          text: 'Ocurrió un error al descargar el voucher. Por favor intente nuevamente.',
+          icon: 'error',
+          confirmButtonText: 'Entendido'
+        });
+      }
     });
   }
 
