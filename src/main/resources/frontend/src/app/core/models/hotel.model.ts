@@ -8,27 +8,31 @@ export interface Hotel {
   /** @property {string} name - Nombre del hotel */
   name: string;
   /** @property {string} description - Descripción detallada del hotel */
-  description: string;
+  description?: string;
   /** @property {string} address - Dirección física del hotel */
-  address: string;
+  address?: string;
   /** @property {string} phoneNumber - Número de teléfono de contacto */
-  phoneNumber: string;
+  phoneNumber?: string;
   /** @property {string} email - Correo electrónico de contacto */
-  email: string;
+  email?: string;
   /** @property {string} [websiteUrl] - URL del sitio web del hotel */
   websiteUrl?: string;
   /** @property {string} imageUrl - URL de la imagen principal del hotel */
-  imageUrl: string;
+  imageUrl?: string;
   /** @property {number} stars - Categoría del hotel en estrellas (1-5) */
   stars: number;
   /** @property {number} rating - Calificación promedio de usuarios (1-5) */
-  rating: number;
+  rating?: number;
+  /** @property {number} basePrice - Precio base del hotel */
+  basePrice?: number;
   /** @property {boolean} isActive - Indica si el hotel está activo para reservas */
-  isActive: boolean;
+  isActive?: boolean;
   /** @property {number} destinationId - ID del destino donde se encuentra el hotel */
-  destinationId: number;
+  destinationId?: number;
   /** @property {string} [destinationName] - Nombre del destino (para visualización) */
   destinationName?: string;
+  /** @property {any} destination - Información del destino */
+  destination?: any;
   /** @property {RoomType[]} [roomTypes] - Tipos de habitaciones disponibles */
   roomTypes?: RoomType[];
 }
@@ -43,9 +47,13 @@ export interface RoomType {
   /** @property {string} name - Nombre del tipo de habitación (ej. Suite, Doble, etc.) */
   name: string;
   /** @property {string} description - Descripción detallada de la habitación */
-  description: string;
+  description?: string;
   /** @property {number} capacity - Capacidad máxima de huéspedes */
-  capacity: number;
+  capacity?: number;
+  /** @property {number} maxOccupancy - Ocupación máxima */
+  maxOccupancy?: number;
+  /** @property {string} bedType - Tipo de cama */
+  bedType?: string;
   /** @property {number} pricePerNight - Precio por noche */
   pricePerNight: number;
   /** @property {string} imageUrl - URL de la imagen de la habitación */

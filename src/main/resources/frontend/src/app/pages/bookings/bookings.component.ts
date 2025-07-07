@@ -216,71 +216,186 @@ export class BookingsComponent implements OnInit {
    * @param {BookingResponse} booking - Datos de la reserva
    */
   private showBookingDetailsModal(booking: BookingResponse): void {
+    // Extract hotel information with null checks
+    const hotelName = booking.hotel?.name || booking.hotelName || 'Hotel no especificado';
+    const hotelLocation = booking.hotel?.location || 'Ubicación no especificada';
+    const hotelImageUrl = booking.hotel?.imageUrl || '';
+    const hotelRating = booking.hotel?.rating || 0;
+    
+    // Extract room type information with null checks
+    const roomTypeName = booking.roomType?.name || booking.roomTypeName || 'Tipo de habitación no especificado';
+    const roomTypeDescription = booking.roomType?.description || '';
+    const roomTypeCapacity = booking.roomType?.maxOccupancy || 0;
+    const roomTypePrice = booking.roomType?.pricePerNight || 0;
+    
+    // Extract user information with null checks
+    const userName = booking.user?.name || 'Usuario no especificado';
+    const userEmail = booking.user?.email || '';
+    
+    // Extract guest and room information with fallback to legacy fields
+    const numGuests = booking.numGuests || booking.guests || 0;
+    const numRooms = booking.numRooms || 1;
+    
+    // Build activities HTML with improved formatting
     const activitiesHtml = booking.activities && booking.activities.length > 0 
       ? `<div class="activities-section">
-           <h5><i class="fas fa-star"></i> Actividades Incluidas:</h5>
-           <ul class="activities-list">
+           <h5><i class="fas fa-star text-warning"></i> Actividades Incluidas (${booking.activities.length}):</h5>
+           <div class="activities-grid">
              ${booking.activities.map(activity => 
-               `<li><strong>${activity.activityName}</strong> - ${this.formatCurrency(activity.activityPrice)} (x${activity.quantity})</li>`
+               `<div class="activity-card">
+                  <div class="activity-header">
+                    <h6>${activity.activity?.name || activity.activityName || 'Actividad sin nombre'}</h6>
+                    <span class="activity-price">${this.formatCurrency(activity.activity?.price || activity.pricePerPerson || 0)}</span>
+                  </div>
+                  <p class="activity-description">${activity.activity?.description || 'Sin descripción'}</p>
+                  <div class="activity-details">
+                    <div class="activity-quantity">
+                      <small class="text-muted">
+                        <i class="fas fa-hashtag"></i> 
+                        Cantidad: ${activity.quantity || 1}
+                      </small>
+                    </div>
+                    ${activity.scheduledDate ? `
+                      <div class="activity-date">
+                        <small class="text-muted">
+                          <i class="fas fa-calendar-alt"></i> 
+                          Fecha programada: ${new Date(activity.scheduledDate).toLocaleDateString('es-ES')}
+                        </small>
+                      </div>
+                    ` : ''}
+                  </div>
+                </div>`
              ).join('')}
-           </ul>
+           </div>
          </div>`
-      : '<p><em>No se han incluido actividades en esta reserva.</em></p>';
+      : `<div class="activities-section">
+           <h5><i class="fas fa-star text-muted"></i> Actividades:</h5>
+           <p class="text-muted"><em>No se han incluido actividades en esta reserva.</em></p>
+         </div>`;
 
     const specialRequestsHtml = booking.specialRequests 
       ? `<div class="special-requests-section">
-           <h5><i class="fas fa-comment"></i> Solicitudes Especiales:</h5>
-           <p>${booking.specialRequests}</p>
+           <h5><i class="fas fa-comment text-info"></i> Solicitudes Especiales:</h5>
+           <div class="special-requests-content">
+             <p>${booking.specialRequests}</p>
+           </div>
          </div>`
       : '';
+
+    // Calculate nights
+    const checkInDate = new Date(booking.checkInDate);
+    const checkOutDate = new Date(booking.checkOutDate);
+    const nights = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 60 * 60 * 24));
 
     Swal.fire({
       title: `<i class="fas fa-info-circle"></i> Detalles de Reserva #${booking.id}`,
       html: `
         <div class="booking-details-modal">
-          <div class="hotel-info">
-            <h4><i class="fas fa-hotel"></i> ${booking.hotelName}</h4>
+          <div class="hotel-info-section">
+            <div class="hotel-header">
+              ${hotelImageUrl ? `<img src="${hotelImageUrl}" alt="${hotelName}" class="hotel-image"/>` : ''}
+              <div class="hotel-details">
+                <h4><i class="fas fa-hotel text-primary"></i> ${hotelName}</h4>
+                <p class="hotel-location">
+                  <i class="fas fa-map-marker-alt text-danger"></i> ${hotelLocation}
+                </p>
+                ${hotelRating > 0 ? `
+                  <div class="hotel-rating">
+                    <div class="stars">
+                      ${Array.from({length: 5}, (_, i) => 
+                        `<i class="fas fa-star ${i < hotelRating ? 'text-warning' : 'text-muted'}"></i>`
+                      ).join('')}
+                    </div>
+                    <span class="rating-text">(${hotelRating}/5)</span>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
           </div>
           
-          <div class="booking-info">
-            <div class="info-row">
-              <div class="info-item">
-                <strong><i class="fas fa-calendar-check"></i> Check-in:</strong>
-                <span>${new Date(booking.checkInDate).toLocaleDateString('es-ES')}</span>
+          <div class="booking-info-section">
+            <div class="info-grid">
+              <div class="info-card">
+                <div class="info-header">
+                  <i class="fas fa-calendar-check text-success"></i>
+                  <strong>Check-in</strong>
+                </div>
+                <div class="info-value">${checkInDate.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
               </div>
-              <div class="info-item">
-                <strong><i class="fas fa-calendar-times"></i> Check-out:</strong>
-                <span>${new Date(booking.checkOutDate).toLocaleDateString('es-ES')}</span>
+              
+              <div class="info-card">
+                <div class="info-header">
+                  <i class="fas fa-calendar-times text-warning"></i>
+                  <strong>Check-out</strong>
+                </div>
+                <div class="info-value">${checkOutDate.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+              </div>
+              
+              <div class="info-card">
+                <div class="info-header">
+                  <i class="fas fa-moon text-info"></i>
+                  <strong>Noches</strong>
+                </div>
+                <div class="info-value">${nights} noche${nights !== 1 ? 's' : ''}</div>
+              </div>
+              
+              <div class="info-card">
+                <div class="info-header">
+                  <i class="fas fa-users text-primary"></i>
+                  <strong>Huéspedes</strong>
+                </div>
+                <div class="info-value">${numGuests} huésped${numGuests !== 1 ? 'es' : ''}</div>
+              </div>
+              
+              <div class="info-card">
+                <div class="info-header">
+                  <i class="fas fa-bed text-secondary"></i>
+                  <strong>Habitaciones</strong>
+                </div>
+                <div class="info-value">${numRooms} habitación${numRooms !== 1 ? 'es' : ''}</div>
+              </div>
+              
+              <div class="info-card">
+                <div class="info-header">
+                  <i class="fas fa-door-open text-info"></i>
+                  <strong>Tipo de Habitación</strong>
+                </div>
+                <div class="info-value">${roomTypeName}</div>
+                ${roomTypeDescription ? `<div class="info-sub">${roomTypeDescription}</div>` : ''}
+                ${roomTypeCapacity > 0 ? `<div class="info-sub">Capacidad: ${roomTypeCapacity} personas</div>` : ''}
+                ${roomTypePrice > 0 ? `<div class="info-sub">Precio: ${this.formatCurrency(roomTypePrice)}/noche</div>` : ''}
               </div>
             </div>
-            
-            <div class="info-row">
-              <div class="info-item">
-                <strong><i class="fas fa-users"></i> Huéspedes:</strong>
-                <span>${booking.guests}</span>
+          </div>
+          
+          <div class="status-price-section">
+            <div class="status-info">
+              <div class="info-header">
+                <i class="fas fa-info-circle"></i>
+                <strong>Estado</strong>
               </div>
-              <div class="info-item">
-                <strong><i class="fas fa-bed"></i> Tipo de Habitación:</strong>
-                <span>${booking.roomTypeName}</span>
-              </div>
+              <span class="status-badge status-${booking.status.toLowerCase()}">${this.getStatusLabel(booking.status)}</span>
             </div>
             
-            <div class="info-row">
-              <div class="info-item">
-                <strong><i class="fas fa-info-circle"></i> Estado:</strong>
-                <span class="status status-${booking.status.toLowerCase()}">${this.getStatusLabel(booking.status)}</span>
+            <div class="price-info">
+              <div class="info-header">
+                <i class="fas fa-dollar-sign text-success"></i>
+                <strong>Total</strong>
               </div>
-              <div class="info-item">
-                <strong><i class="fas fa-dollar-sign"></i> Total:</strong>
-                <span class="total-amount">${this.formatCurrency(booking.totalPrice)}</span>
-              </div>
+              <div class="total-amount">${this.formatCurrency(booking.totalPrice)}</div>
             </div>
-            
-            <div class="info-row">
-              <div class="info-item">
-                <strong><i class="fas fa-calendar-plus"></i> Fecha de Reserva:</strong>
-                <span>${new Date(booking.bookingDate).toLocaleDateString('es-ES')}</span>
-              </div>
+          </div>
+          
+          <div class="booking-meta-section">
+            <div class="meta-item">
+              <i class="fas fa-calendar-plus text-muted"></i>
+              <strong>Fecha de Reserva:</strong>
+              <span>${new Date(booking.bookingDate).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+            </div>
+            <div class="meta-item">
+              <i class="fas fa-user text-muted"></i>
+              <strong>Reservado por:</strong>
+              <span>${userName}${userEmail ? ` (${userEmail})` : ''}</span>
             </div>
           </div>
           
@@ -288,7 +403,7 @@ export class BookingsComponent implements OnInit {
           ${specialRequestsHtml}
         </div>
       `,
-      width: 600,
+      width: 800,
       confirmButtonText: 'Cerrar',
       confirmButtonColor: '#007bff',
       customClass: {

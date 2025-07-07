@@ -6,19 +6,23 @@ export interface User {
   /** @property {number} id - Identificador único del usuario */
   id: number;
   /** @property {string} username - Nombre de usuario único */
-  username: string;
+  username?: string;
   /** @property {string} email - Correo electrónico del usuario */
   email: string;
   /** @property {string} firstName - Nombre del usuario */
   firstName: string;
   /** @property {string} lastName - Apellido del usuario */
   lastName: string;
+  /** @property {string} phone - Teléfono del usuario */
+  phone?: string;
+  /** @property {string} fullName - Nombre completo del usuario */
+  fullName?: string;
   /** @property {string[]} [roleNames] - Roles asignados al usuario (opcional) */
   roleNames?: string[]; // Made optional to handle cases where backend doesn't provide it
   /** @property {boolean} isActive - Estado del usuario (activo/inactivo) */
-  isActive: boolean;
+  isActive?: boolean;
   /** @property {Date} createdAt - Fecha de creación de la cuenta */
-  createdAt: Date;
+  createdAt?: Date;
   /** @property {UserPreferences} [preferences] - Preferencias del usuario (opcional) */
   preferences?: UserPreferences;
 }
