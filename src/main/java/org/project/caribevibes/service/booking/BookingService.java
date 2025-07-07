@@ -344,7 +344,8 @@ public class BookingService {
         bookingActivity.setQuantity(quantity);
         bookingActivity.setPricePerPerson(activity.getPrice());
         bookingActivity.setTotalPrice(activity.getPrice().multiply(BigDecimal.valueOf(quantity)));
-        bookingActivity.setActive(true); // Establecemos la actividad como activa
+        bookingActivity.setScheduledDate(booking.getCheckInDate()); // Establecer la fecha programada
+        bookingActivity.setIsActive(true); // Establecemos la actividad como activa
 
         BookingActivity savedBookingActivity = bookingActivityRepository.save(bookingActivity);
         
@@ -378,8 +379,8 @@ public class BookingService {
         
                         return bookingActivityRepository.findById(bookingActivityId)
                 .map(bookingActivity -> {
-                    if (Boolean.TRUE.equals(bookingActivity.getActive())) {
-                        bookingActivity.setActive(false); // Realizamos eliminación lógica
+                    if (Boolean.TRUE.equals(bookingActivity.getIsActive())) {
+                        bookingActivity.setIsActive(false); // Realizamos eliminación lógica
                         bookingActivityRepository.save(bookingActivity); // Guardamos el cambio
                         
                         // Actualizar el precio total de la reserva

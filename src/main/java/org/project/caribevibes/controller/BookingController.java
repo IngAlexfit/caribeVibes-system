@@ -3,6 +3,10 @@ package org.project.caribevibes.controller;
 import org.project.caribevibes.dto.request.BookingRequestDTO;
 import org.project.caribevibes.dto.response.BookingResponseDTO;
 import org.project.caribevibes.dto.response.BookingActivityResponseDTO;
+import org.project.caribevibes.dto.response.UserBasicDTO;
+import org.project.caribevibes.dto.response.HotelBasicDTO;
+import org.project.caribevibes.dto.response.RoomTypeBasicDTO;
+import org.project.caribevibes.dto.response.ActivityBasicDTO;
 import org.project.caribevibes.entity.booking.Booking;
 import org.project.caribevibes.entity.booking.BookingActivity;
 import org.project.caribevibes.entity.hotel.Hotel;
@@ -414,7 +418,6 @@ public class BookingController {
      * @return DTO de respuesta de la reserva
      */
     private BookingResponseDTO convertToBookingResponseDTO(Booking booking) {
-        // Por ahora, una versión simplificada
         BookingResponseDTO dto = new BookingResponseDTO();
         dto.setId(booking.getId());
         dto.setConfirmationCode(booking.getConfirmationCode());
@@ -426,6 +429,45 @@ public class BookingController {
         dto.setTotalPrice(booking.getTotalPrice());
         dto.setStatus(booking.getStatus().toString());
         dto.setSpecialRequests(booking.getSpecialRequests());
+        
+        // Convertir información del usuario
+        if (booking.getUser() != null) {
+            UserBasicDTO userDTO = new UserBasicDTO();
+            userDTO.setId(booking.getUser().getId());
+            userDTO.setFirstName(booking.getUser().getFirstName());
+            userDTO.setLastName(booking.getUser().getLastName());
+            userDTO.setEmail(booking.getUser().getEmail());
+            dto.setUser(userDTO);
+        }
+        
+        // Convertir información del hotel
+        if (booking.getHotel() != null) {
+            HotelBasicDTO hotelDTO = new HotelBasicDTO();
+            hotelDTO.setId(booking.getHotel().getId());
+            hotelDTO.setName(booking.getHotel().getName());
+            hotelDTO.setStars(booking.getHotel().getStars());
+            hotelDTO.setImageUrl(booking.getHotel().getImageUrl()); // Corrected method name
+            dto.setHotel(hotelDTO);
+        }
+        
+        // Convertir información del tipo de habitación
+        if (booking.getRoomType() != null) {
+            RoomTypeBasicDTO roomTypeDTO = new RoomTypeBasicDTO();
+            roomTypeDTO.setId(booking.getRoomType().getId());
+            roomTypeDTO.setName(booking.getRoomType().getName());
+            roomTypeDTO.setPricePerNight(booking.getRoomType().getPricePerNight());
+            roomTypeDTO.setMaxOccupancy(booking.getRoomType().getCapacity()); // Map capacity to maxOccupancy
+            dto.setRoomType(roomTypeDTO);
+        }
+        
+        // Obtener y convertir actividades
+        List<BookingActivity> activities = bookingService.findBookingActivities(booking.getId());
+        if (activities != null && !activities.isEmpty()) {
+            List<BookingActivityResponseDTO> activityDTOs = activities.stream()
+                    .map(this::convertToBookingActivityResponseDTO)
+                    .collect(Collectors.toList());
+            dto.setActivities(activityDTOs);
+        }
         
         return dto;
     }
@@ -442,7 +484,19 @@ public class BookingController {
         dto.setQuantity(bookingActivity.getQuantity());
         dto.setPricePerPerson(bookingActivity.getPricePerPerson());
         dto.setTotalPrice(bookingActivity.getTotalPrice());
-          return dto;
+        
+        // Convertir información de la actividad
+        if (bookingActivity.getActivity() != null) {
+            ActivityBasicDTO activityDTO = new ActivityBasicDTO();
+            activityDTO.setId(bookingActivity.getActivity().getId());
+            activityDTO.setName(bookingActivity.getActivity().getName());
+            activityDTO.setDescription(bookingActivity.getActivity().getDescription());
+            activityDTO.setPrice(bookingActivity.getActivity().getPrice());
+            // Note: Activity entity doesn't have imageUrl field, setting to null or removing this line
+            dto.setActivity(activityDTO);
+        }
+        
+        return dto;
     }
 
     /**

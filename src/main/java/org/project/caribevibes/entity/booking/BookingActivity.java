@@ -52,9 +52,9 @@ public class BookingActivity {
     @NotNull(message = "El precio total es requerido")
     @Getter @Setter private BigDecimal totalPrice;
 
-    @Column(name = "is_active", nullable = false) // Changed column name
+    @Column(name = "is_active", nullable = false)
     @Builder.Default
-    private Boolean isActive = true; // Field name is isActive
+    private Boolean isActive = true;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
@@ -70,14 +70,6 @@ public class BookingActivity {
         } else {
             this.totalPrice = BigDecimal.ZERO;
         }
-    }
-
-    public Boolean getActive() {
-        return isActive;
-    }
-
-    public void setActive(Boolean active) {
-        this.isActive = active;
     }
 
     public enum ActivityStatus {
