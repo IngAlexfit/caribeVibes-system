@@ -4,6 +4,7 @@ import { DestinationService } from '../../core/services/destination.service';
 import { HotelService } from '../../core/services/hotel.service';
 import { DestinationResponse } from '../../core/models/destination.model';
 import { HotelResponse } from '../../core/models/hotel.model';
+import Swal from 'sweetalert2';
 
 /**
  * @class DestinationsComponent
@@ -251,8 +252,18 @@ export class DestinationsComponent implements OnInit {
    */
   onBookingCreated(booking: any): void {
     console.log('Reserva creada exitosamente:', booking);
-    // Mostrar mensaje de éxito
-    alert('¡Reserva creada exitosamente! Serás redirigido a tus reservas.');
-    this.router.navigate(['/bookings']);
+    // Mostrar mensaje de éxito con SweetAlert
+    Swal.fire({
+      icon: 'success',
+      title: '¡Reserva Creada!',
+      text: 'Tu reserva ha sido creada exitosamente. Te redirigiremos a tus reservas.',
+      confirmButtonText: 'Ver mis reservas',
+      confirmButtonColor: '#007bff',
+      timer: 3000,
+      timerProgressBar: true
+    }).then(() => {
+      // Redirigir a la página de reservas
+      this.router.navigate(['/bookings']);
+    });
   }
 }

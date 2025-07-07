@@ -6,6 +6,7 @@ import { ContactService } from '../../core/services/contact.service';
 import { DestinationResponse } from '../../core/models/destination.model';
 import { HotelResponse } from '../../core/models/hotel.model';
 import { ContactRequest } from '../../core/models/common.model';
+import Swal from 'sweetalert2';
 
 /** @type {any} Declaración para acceder a la biblioteca Bootstrap */
 declare var bootstrap: any;
@@ -167,13 +168,28 @@ export class HomeComponent implements OnInit, AfterViewInit {
     if (this.isValidContactForm()) {
       this.contactService.createContact(this.contactForm).subscribe({
         next: () => {
-          // Show success message (you can use SweetAlert2 or similar)
-          alert('¡Mensaje enviado exitosamente! Te contactaremos pronto.');
+          // Mostrar mensaje de éxito con SweetAlert
+          Swal.fire({
+            icon: 'success',
+            title: '¡Mensaje Enviado!',
+            text: 'Tu mensaje ha sido enviado exitosamente. Te contactaremos pronto.',
+            confirmButtonText: 'Perfecto',
+            confirmButtonColor: '#28a745',
+            timer: 4000,
+            timerProgressBar: true
+          });
           this.resetContactForm();
         },
         error: (error) => {
           console.error('Error sending contact message:', error);
-          alert('Error al enviar el mensaje. Por favor intenta nuevamente.');
+          // Mostrar mensaje de error con SweetAlert
+          Swal.fire({
+            icon: 'error',
+            title: 'Error al Enviar',
+            text: 'Hubo un problema al enviar tu mensaje. Por favor intenta nuevamente.',
+            confirmButtonText: 'Reintentar',
+            confirmButtonColor: '#dc3545'
+          });
         }
       });
     }
