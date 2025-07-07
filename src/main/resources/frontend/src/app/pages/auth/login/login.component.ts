@@ -78,6 +78,11 @@ export class LoginComponent implements OnInit {
         next: (response: AuthResponse) => {
           this.isLoading = false;
           console.log('Login successful:', response);
+          console.log('Auth state after login:', {
+            isAuthenticated: this.authService.isAuthenticated(),
+            currentUser: this.authService.getCurrentUser(),
+            hasValidToken: this.authService.hasValidToken()
+          });
           
           Swal.fire({
             icon: 'success',
@@ -89,11 +94,18 @@ export class LoginComponent implements OnInit {
           
           // Small delay to ensure user data is properly set
           setTimeout(() => {
+            console.log('About to redirect. Final auth state:', {
+              isAuthenticated: this.authService.isAuthenticated(),
+              currentUser: this.authService.getCurrentUser()
+            });
+            
             // Redirect based on user role
             try {
               if (this.authService.isAdmin()) {
+                console.log('Redirecting to admin dashboard');
                 this.router.navigate(['/admin/dashboard']);
               } else {
+                console.log('Redirecting to user dashboard');
                 this.router.navigate(['/dashboard']);
               }
             } catch (error) {

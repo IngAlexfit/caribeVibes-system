@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -258,7 +259,9 @@ public class AuthService {
         if (!request.getPassword().equals(request.getConfirmPassword())) {
             throw new BusinessException("Las contraseñas no coinciden");
         }
-    }    /**
+    }
+
+    /**
      * Construye la respuesta de autenticación.
      */
     private AuthResponseDTO buildAuthResponse(User user, String token) {
@@ -275,10 +278,21 @@ public class AuthService {
                 .createdAt(user.getCreatedAt())
                 .build();
 
+        // Obtener la fecha de expiración del token y convertirla a LocalDateTime
+        Date expirationDate = jwtTokenUtil.getExpirationDateFromToken(token);
+        LocalDateTime expiresAt = expirationDate.toInstant()
+                .atZone(java.time.ZoneId.systemDefault())
+                .toLocalDateTime();
+        
+        // Calcular el tiempo de expiración en segundos desde ahora
+        long expiresInSeconds = java.time.Duration.between(LocalDateTime.now(), expiresAt).getSeconds();
+
         // Crear la respuesta de autenticación
         return AuthResponseDTO.builder()
                 .token(token)
                 .tokenType("Bearer")
+                .expiresIn(expiresInSeconds)
+                .expiresAt(expiresAt)
                 .user(userInfo)
                 .build();
     }

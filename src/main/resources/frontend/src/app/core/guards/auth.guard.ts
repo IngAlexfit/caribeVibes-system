@@ -30,9 +30,14 @@ export class AuthGuard implements CanActivate {
    * @returns {boolean} Verdadero si el usuario está autenticado, falso en caso contrario
    */
   canActivate(): boolean {
-    if (this.authService.isAuthenticated()) {
+    // Forzar verificación del estado de autenticación antes de validar acceso
+    const isAuthenticated = this.authService.forceCheckAuthentication();
+    
+    if (isAuthenticated) {
+      console.log('AuthGuard: User is authenticated, allowing access');
       return true;
     } else {
+      console.log('AuthGuard: User is not authenticated, redirecting to login');
       this.router.navigate(['/login']);
       return false;
     }

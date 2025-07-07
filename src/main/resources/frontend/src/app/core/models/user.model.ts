@@ -51,8 +51,10 @@ export interface AuthResponse {
   token: string;
   /** @property {string} tokenType - Tipo de token (generalmente "Bearer") */
   tokenType: string;
-  /** @property {number} expiresIn - Tiempo de expiración del token en segundos */
-  expiresIn: number;
+  /** @property {number} expiresIn - Tiempo de expiración del token en segundos (opcional) */
+  expiresIn?: number;
+  /** @property {string} expiresAt - Fecha y hora de expiración del token (opcional) */
+  expiresAt?: string;
 }
 
 /**

@@ -43,7 +43,7 @@ export class AuthService extends ApiBaseService {
     super();
     console.log('AuthService initialized with API URL:', this.API_URL);
     console.log('Environment config:', environment);
-    this.checkTokenValidity();
+    this.initializeAuthState();
   }
 
   /**
@@ -97,12 +97,47 @@ export class AuthService extends ApiBaseService {
    * @description Cierra la sesión del usuario actual
    */
   logout(): void {
+    this.clearSession();
+    this.router.navigate(['/']);
+  }
+
+  /**
+   * @method clearSession
+   * @description Limpia la sesión del usuario (sin redireccionar)
+   * @private
+   */
+  private clearSession(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('tokenExpiry');
     localStorage.removeItem('currentUser');
     this.currentUserSubject.next(null);
     this.isLoggedInSubject.next(false);
-    this.router.navigate(['/']);
+  }
+
+  /**
+   * @method initializeAuthState
+   * @description Inicializa el estado de autenticación de forma síncrona al cargar la aplicación
+   * @private
+   */
+  private initializeAuthState(): void {
+    const token = this.getToken();
+    const expiry = localStorage.getItem('tokenExpiry');
+    const userStr = localStorage.getItem('currentUser');
+
+    if (token && expiry && userStr) {
+      const expiryDate = new Date(expiry);
+      if (expiryDate > new Date()) {
+        const user = JSON.parse(userStr);
+        this.currentUserSubject.next(user);
+        this.isLoggedInSubject.next(true);
+        console.log('Auth state initialized - User authenticated:', user.email);
+      } else {
+        console.log('Auth state initialized - Token expired, clearing session');
+        this.clearSession();
+      }
+    } else {
+      console.log('Auth state initialized - No valid session found');
+    }
   }
 
   /**
@@ -121,7 +156,7 @@ export class AuthService extends ApiBaseService {
         this.currentUserSubject.next(user);
         this.isLoggedInSubject.next(true);
       } else {
-        this.logout();
+        this.clearSession();
       }
     }
   }
@@ -195,7 +230,8 @@ export class AuthService extends ApiBaseService {
    * @returns {boolean} True si hay un usuario autenticado
    */
   isAuthenticated(): boolean {
-    return this.isLoggedInSubject.value;
+    // Verificar tanto el estado en memoria como el token almacenado
+    return this.isLoggedInSubject.value && this.hasValidToken();
   }
 
   /**
@@ -204,7 +240,7 @@ export class AuthService extends ApiBaseService {
    * @returns {boolean} True si hay un usuario autenticado
    */
   isLoggedIn(): boolean {
-    return this.isLoggedInSubject.value;
+    return this.isAuthenticated();
   }
 
   /**
@@ -239,13 +275,50 @@ export class AuthService extends ApiBaseService {
    */
   private setSession(authResult: AuthResponse): void {
     const expiry = new Date();
-    expiry.setTime(expiry.getTime() + (authResult.expiresIn * 1000));
+    
+    // Si expiresIn no está definido, usar un valor por defecto de 24 horas
+    const expiresInSeconds = authResult.expiresIn || 86400; // 24 horas en segundos
+    expiry.setTime(expiry.getTime() + (expiresInSeconds * 1000));
 
     localStorage.setItem('token', authResult.token);
     localStorage.setItem('tokenExpiry', expiry.toISOString());
     localStorage.setItem('currentUser', JSON.stringify(authResult.user));
     
+    console.log('Session set successfully:', {
+      token: authResult.token.substring(0, 20) + '...',
+      expiresIn: expiresInSeconds,
+      expiresAt: expiry.toISOString(),
+      user: authResult.user.email
+    });
+    
     this.currentUserSubject.next(authResult.user);
     this.isLoggedInSubject.next(true);
+  }
+
+  /**
+   * @method hasValidToken
+   * @description Verifica si hay un token válido almacenado de forma síncrona
+   * @returns {boolean} True si hay un token válido
+   */
+  hasValidToken(): boolean {
+    const token = this.getToken();
+    const expiry = localStorage.getItem('tokenExpiry');
+    const userStr = localStorage.getItem('currentUser');
+
+    if (token && expiry && userStr) {
+      const expiryDate = new Date(expiry);
+      return expiryDate > new Date();
+    }
+    return false;
+  }
+
+  /**
+   * @method forceCheckAuthentication
+   * @description Fuerza una verificación del estado de autenticación
+   * Útil para casos donde necesitamos verificar el estado inmediatamente
+   */
+  forceCheckAuthentication(): boolean {
+    this.checkTokenValidity();
+    return this.isAuthenticated();
   }
 }

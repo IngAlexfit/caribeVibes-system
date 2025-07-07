@@ -40,7 +40,8 @@ export class AppComponent implements OnInit {
       this.isLoading = false;
     }, 1000);
 
-    // Verificar token existente
+    // Verificar token existente - esto ya se hace en el constructor del AuthService
+    // pero lo llamamos aquí también para asegurar que esté sincronizado
     this.authService.checkTokenValidity();
     
     // Test del proxy al cargar la aplicación
