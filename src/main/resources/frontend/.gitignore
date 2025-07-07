@@ -5,9 +5,6 @@
 # Node modules
 /node_modules
 
-# Environment files
-/src/environments/environment*.ts
-
 # IDE files
 /.idea
 /.vscode
