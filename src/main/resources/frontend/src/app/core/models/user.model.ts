@@ -19,6 +19,8 @@ export interface User {
   fullName?: string;
   /** @property {string[]} [roleNames] - Roles asignados al usuario (opcional) */
   roleNames?: string[]; // Made optional to handle cases where backend doesn't provide it
+  /** @property {string[]} [roles] - Roles asignados al usuario (alternativo desde backend) */
+  roles?: string[]; // Alternative property from backend
   /** @property {boolean} isActive - Estado del usuario (activo/inactivo) */
   isActive?: boolean;
   /** @property {Date} createdAt - Fecha de creación de la cuenta */

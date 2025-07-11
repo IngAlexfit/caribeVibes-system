@@ -140,16 +140,47 @@ export class ContactService {
    * @method replyToContact
    * @description Responde a un mensaje de contacto
    * @param {number} id - ID del mensaje
-   * @param {string} reply - Texto de la respuesta
+   * @param {string} response - Texto de la respuesta
    * @returns {Observable<any>} Observable con la respuesta del servidor
    */
-  replyToContact(id: number, reply: string): Observable<any> {
-    return this.http.post<any>(`${this.API_URL}/${id}/reply`, { reply });
+  replyToContact(id: number, response: string): Observable<any> {
+    return this.http.put(`${this.API_URL}/${id}/reply`, { response });
+  }
+
+  /**
+   * @method markAsRead
+   * @description Marca un mensaje de contacto como leído
+   * @param {number} id - ID del mensaje
+   * @returns {Observable<any>} Observable con la respuesta del servidor
+   */
+  markAsRead(id: number): Observable<any> {
+    return this.http.put(`${this.API_URL}/${id}/mark-read`, {});
+  }
+
+  /**
+   * @method sendAutoReply
+   * @description Envía una respuesta automática a un mensaje de contacto
+   * @param {number} id - ID del mensaje
+   * @param {string} [templateType='GENERAL'] - Tipo de template a usar
+   * @returns {Observable<any>} Observable con la respuesta del servidor
+   */
+  sendAutoReply(id: number, templateType: string = 'GENERAL'): Observable<any> {
+    const params = new HttpParams().set('templateType', templateType);
+    return this.http.put(`${this.API_URL}/${id}/auto-reply`, {}, { params });
+  }
+
+  /**
+   * @method getContactStatistics
+   * @description Obtiene estadísticas de mensajes de contacto
+   * @returns {Observable<any>} Observable con las estadísticas
+   */
+  getContactStatistics(): Observable<any> {
+    return this.http.get(`${this.API_URL}/statistics`);
   }
 
   /**
    * @method deleteContact
-   * @description Elimina un mensaje de contacto
+   * @description Elimina (desactiva) un mensaje de contacto
    * @param {number} id - ID del mensaje a eliminar
    * @returns {Observable<any>} Observable con la respuesta del servidor
    */

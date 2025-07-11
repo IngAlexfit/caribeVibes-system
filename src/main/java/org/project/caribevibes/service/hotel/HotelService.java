@@ -281,4 +281,15 @@ public class HotelService {
                     name, pageable.getPageNumber(), pageable.getPageSize());
         return hotelRepository.findByNameContainingIgnoreCaseAndIsActiveTrueOrderByNameAsc(name, pageable);
     }
+
+    /**
+     * Cuenta el total de hoteles activos en el sistema.
+     * 
+     * @return Número total de hoteles activos
+     */
+    @Transactional(readOnly = true)
+    public long countActiveHotels() {
+        logger.debug("Contando todos los hoteles activos");
+        return hotelRepository.countByIsActiveTrue();
+    }
 }

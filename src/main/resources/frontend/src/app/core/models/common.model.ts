@@ -9,6 +9,8 @@ export interface Contact {
   name: string;
   /** @property {string} email - Correo electrónico de contacto */
   email: string;
+  /** @property {string} [phoneNumber] - Número de teléfono de contacto (opcional) */
+  phoneNumber?: string;
   /** @property {string} subject - Asunto del mensaje */
   subject: string;
   /** @property {string} message - Contenido del mensaje */

@@ -327,7 +327,7 @@ export class BookingModalComponent implements OnInit, OnChanges {
       const quantity = this.bookingForm.value.numGuests || 1;
       
       this.bookingService.addActivityToBooking(bookingId, activityId, quantity).subscribe({
-        next: (activityResponse) => {
+        next: (activityResponse: any) => {
           console.log('Activity added successfully:', activityResponse);
           activitiesAdded++;
           
@@ -335,10 +335,10 @@ export class BookingModalComponent implements OnInit, OnChanges {
           if (activitiesAdded === totalActivities) {
             // Obtener la reserva completa con actividades
             this.bookingService.getBookingById(bookingId).subscribe({
-              next: (completeBooking) => {
+              next: (completeBooking: any) => {
                 this.completeBookingProcess(completeBooking);
               },
-              error: (error) => {
+              error: (error: any) => {
                 console.error('Error getting complete booking:', error);
                 // Aunque haya error obteniendo la reserva completa, la creación fue exitosa
                 this.completeBookingProcess({ id: bookingId });
@@ -346,7 +346,7 @@ export class BookingModalComponent implements OnInit, OnChanges {
             });
           }
         },
-        error: (error) => {
+        error: (error: any) => {
           console.error('Error adding activity:', error);
           activitiesAdded++;
           

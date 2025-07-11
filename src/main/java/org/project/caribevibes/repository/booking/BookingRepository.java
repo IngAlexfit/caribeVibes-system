@@ -325,4 +325,11 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                            @Param("checkInDate") LocalDate checkInDate,
                            @Param("checkOutDate") LocalDate checkOutDate);
 
+    /**
+     * Cuenta el total de reservas activas en el sistema
+     * 
+     * @return Número total de reservas activas
+     */
+    long countByIsActiveTrue();
+
 }

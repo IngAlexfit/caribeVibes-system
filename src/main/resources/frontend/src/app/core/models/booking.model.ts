@@ -185,13 +185,32 @@ export interface BookingResponse {
   hotel: Hotel;
   /** @property {RoomType} roomType - Datos del tipo de habitación */
   roomType: RoomType;
+  
+  // Propiedades adicionales para administración
+  /** @property {string} customerName - Nombre del cliente */
+  customerName: string;
+  /** @property {string} customerEmail - Email del cliente */
+  customerEmail: string;
+  /** @property {string} [customerPhone] - Teléfono del cliente */
+  customerPhone?: string;
+  /** @property {number} totalAmount - Monto total de la reserva */
+  totalAmount: number;
+  /** @property {string} [paymentMethod] - Método de pago */
+  paymentMethod?: string;
+  /** @property {string} [paymentStatus] - Estado del pago */
+  paymentStatus?: string;
+  /** @property {string} createdAt - Fecha de creación */
+  createdAt: string;
+  /** @property {string} updatedAt - Fecha de última actualización */
+  updatedAt: string;
+  
   // Legacy fields for backward compatibility
   /** @property {string} hotelName - Nombre del hotel reservado */
   hotelName?: string;
   /** @property {string} roomTypeName - Nombre del tipo de habitación */
   roomTypeName?: string;
   /** @property {number} guests - Número de huéspedes (alias para numGuests) */
-  guests?: number;
+  guests: number;
 }
 
 /**

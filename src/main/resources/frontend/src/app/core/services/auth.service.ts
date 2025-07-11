@@ -251,11 +251,23 @@ export class AuthService extends ApiBaseService {
    */
   hasRole(role: string): boolean {
     const user = this.getCurrentUser();
-    if (!user || !user.roleNames || !Array.isArray(user.roleNames)) {
-      console.warn('AuthService: User or roleNames not available', { user });
+    if (!user) {
+      console.warn('AuthService: User not available');
       return false;
     }
-    return user.roleNames.includes(role);
+    
+    // Verificar en roleNames primero (si existe y tiene datos)
+    if (user.roleNames && Array.isArray(user.roleNames) && user.roleNames.length > 0) {
+      return user.roleNames.includes(role);
+    }
+    
+    // Si roleNames está vacío o no existe, verificar en roles
+    if (user.roles && Array.isArray(user.roles) && user.roles.length > 0) {
+      return user.roles.includes(role);
+    }
+    
+    console.warn('AuthService: No roles found for user', { user });
+    return false;
   }
 
   /**
@@ -280,19 +292,24 @@ export class AuthService extends ApiBaseService {
     const expiresInSeconds = authResult.expiresIn || 86400; // 24 horas en segundos
     expiry.setTime(expiry.getTime() + (expiresInSeconds * 1000));
 
+    // Guardar en localStorage de forma síncrona
     localStorage.setItem('token', authResult.token);
     localStorage.setItem('tokenExpiry', expiry.toISOString());
     localStorage.setItem('currentUser', JSON.stringify(authResult.user));
+    
+    // Actualizar estado inmediatamente
+    this.currentUserSubject.next(authResult.user);
+    this.isLoggedInSubject.next(true);
     
     console.log('Session set successfully:', {
       token: authResult.token.substring(0, 20) + '...',
       expiresIn: expiresInSeconds,
       expiresAt: expiry.toISOString(),
-      user: authResult.user.email
+      user: authResult.user.email,
+      tokenInStorage: !!localStorage.getItem('token'),
+      isAuthenticated: this.isAuthenticated(),
+      hasValidToken: this.hasValidToken()
     });
-    
-    this.currentUserSubject.next(authResult.user);
-    this.isLoggedInSubject.next(true);
   }
 
   /**

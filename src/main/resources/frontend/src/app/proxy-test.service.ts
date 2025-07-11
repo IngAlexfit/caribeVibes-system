@@ -54,7 +54,7 @@ export class ProxyTestService {
 
   /**
    * @method testHealth
-   * @description Verifica la salud y disponibilidad del backend mediante el endpoint de health check
+   * @description Verifica la salud y disponibilidad del backend mediante el endpoint público de health check
    * @returns {Observable<any>} Observable con el estado de salud del servidor
    */
   testHealth(): Observable<any> {

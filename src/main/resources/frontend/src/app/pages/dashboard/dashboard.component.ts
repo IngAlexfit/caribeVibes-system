@@ -9,7 +9,7 @@ import { BookingResponse } from '../../core/models/booking.model';
 import { DestinationResponse } from '../../core/models/destination.model';
 import { HotelResponse } from '../../core/models/hotel.model';
 import { Observable, forkJoin } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, filter, take } from 'rxjs/operators';
 
 /**
  * @interface DashboardStats
@@ -80,11 +80,57 @@ export class DashboardComponent implements OnInit {
 
   /**
    * @method ngOnInit
-   * @description Inicializa el componente obteniendo el usuario actual y cargando datos del dashboard
+   * @description Inicializa el componente obteniendo el usuario actual y cargando datos del dashboard.
+   * Si el usuario es admin, redirige al panel de administración.
    */
   ngOnInit(): void {
     this.currentUser = this.authService.getCurrentUser();
-    this.loadDashboardData();
+    
+    // Verificar que el usuario esté autenticado antes de cargar datos
+    if (this.authService.isAuthenticated() && this.authService.hasValidToken()) {
+      console.log('Dashboard: User authenticated, checking role');
+      this.checkUserRoleAndLoadData();
+    } else {
+      console.log('Dashboard: User not authenticated, waiting for auth state');
+      // Esperar a que el estado de autenticación se establezca
+      this.authService.currentUser$.pipe(
+        filter((user: User | null) => user !== null),
+        take(1)
+      ).subscribe({
+        next: (user: User | null) => {
+          console.log('Dashboard: Auth state confirmed, checking role');
+          this.currentUser = user;
+          this.checkUserRoleAndLoadData();
+        },
+        error: (error) => {
+          console.error('Dashboard: Error waiting for auth state:', error);
+          this.authService.logout();
+        }
+      });
+    }
+  }
+
+  /**
+   * @method checkUserRoleAndLoadData
+   * @private
+   * @description Verifica el rol del usuario y redirige a admin o carga datos de usuario regular
+   */
+  private checkUserRoleAndLoadData(): void {
+    // Si el usuario es admin, redirigir al panel de administración
+    if (this.currentUser && this.authService.isAdmin()) {
+      console.log('Dashboard: User is admin, redirecting to admin dashboard');
+      this.router.navigate(['/admin/dashboard']);
+      return;
+    }
+    
+    // Si es usuario regular, cargar datos del dashboard
+    if (this.currentUser && !this.authService.isAdmin()) {
+      console.log('Dashboard: User is regular user, loading dashboard data');
+      this.loadDashboardData();
+    } else {
+      console.error('Dashboard: Invalid user state');
+      this.authService.logout();
+    }
   }
 
   /**
@@ -95,12 +141,22 @@ export class DashboardComponent implements OnInit {
   private loadDashboardData(): void {
     this.isLoading = true;
     
+    // Verificar una vez más que tenemos un token válido antes de hacer peticiones
+    if (!this.authService.hasValidToken()) {
+      console.error('Dashboard: No valid token available for data loading');
+      this.authService.logout();
+      return;
+    }
+    
+    console.log('Dashboard: Making API calls with token:', this.authService.getToken()?.substring(0, 20) + '...');
+    
     forkJoin({
       bookings: this.bookingService.getMyBookings(),
       destinations: this.destinationService.getAllDestinations(),
       hotels: this.hotelService.getAllHotels()
     }).subscribe({
       next: (data) => {
+        console.log('Dashboard: Data loaded successfully');
         this.processBookingsData(data.bookings.content);
         this.favoriteDestinations = data.destinations.content.slice(0, 3);
         this.recommendedHotels = data.hotels.content.slice(0, 3);
@@ -108,6 +164,10 @@ export class DashboardComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading dashboard data:', error);
+        if (error.status === 401) {
+          console.log('Dashboard: Unauthorized, redirecting to login');
+          this.authService.logout();
+        }
         this.isLoading = false;
       }
     });

@@ -27,6 +27,11 @@ import { BookingsComponent } from './pages/bookings/bookings.component';
 import { BookingDetailComponent } from './pages/booking-detail/booking-detail.component';
 import { ContactComponent } from './pages/contact/contact.component';
 
+// Admin Pages
+import { AdminDashboardComponent } from './pages/admin/dashboard/admin-dashboard.component';
+import { AdminContactsComponent } from './pages/admin/contacts/admin-contacts.component';
+import { AdminBookingsComponent } from './pages/admin/bookings/admin-bookings.component';
+
 /**
  * @class AppModule
  * @description Módulo principal de la aplicación Angular.
@@ -47,7 +52,11 @@ import { ContactComponent } from './pages/contact/contact.component';
     DashboardComponent,
     BookingsComponent,
     BookingDetailComponent,
-    ContactComponent
+    ContactComponent,
+    // Admin Components
+    AdminDashboardComponent,
+    AdminContactsComponent,
+    AdminBookingsComponent
   ],
   imports: [
     BrowserModule,

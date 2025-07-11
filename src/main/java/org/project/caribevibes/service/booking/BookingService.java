@@ -505,4 +505,15 @@ public class BookingService {
         return bookingRepository.findByCheckInDateBetweenAndStatusAndIsActiveTrue(
                 today, nextWeek, Booking.BookingStatus.CONFIRMED, pageable);
     }
+
+    /**
+     * Cuenta el total de reservas activas en el sistema.
+     * 
+     * @return Número total de reservas activas
+     */
+    @Transactional(readOnly = true)
+    public long countAllBookings() {
+        logger.debug("Contando todas las reservas activas");
+        return bookingRepository.countByIsActiveTrue();
+    }
 }

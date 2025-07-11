@@ -69,6 +69,33 @@ export class BookingService {
   }
 
   /**
+   * @method addActivityToBooking
+   * @description Agrega una actividad a una reserva existente
+   * @param {number} bookingId - ID de la reserva
+   * @param {number} activityId - ID de la actividad a agregar
+   * @param {number} quantity - Cantidad de participantes
+   * @returns {Observable<BookingActivity>} Actividad agregada a la reserva
+   */
+  addActivityToBooking(bookingId: number, activityId: number, quantity: number): Observable<BookingActivity> {
+    const activityData = {
+      activityId: activityId,
+      quantity: quantity
+    };
+    return this.http.post<BookingActivity>(`${this.API_URL}/${bookingId}/activities`, activityData);
+  }
+
+  /**
+   * @method removeActivityFromBooking
+   * @description Remueve una actividad de una reserva
+   * @param {number} bookingId - ID de la reserva
+   * @param {number} activityId - ID de la actividad a remover
+   * @returns {Observable<any>} Respuesta de la operación
+   */
+  removeActivityFromBooking(bookingId: number, activityId: number): Observable<any> {
+    return this.http.delete(`${this.API_URL}/${bookingId}/activities/${activityId}`);
+  }
+
+  /**
    * @method cancelBooking
    * @description Cancela una reserva existente
    * @param {number} id - ID de la reserva a cancelar
@@ -79,15 +106,36 @@ export class BookingService {
   }
 
   /**
+   * @method downloadVoucher
+   * @description Descarga el voucher PDF de una reserva
+   * @param {number} bookingId - ID de la reserva
+   * @returns {Observable<Blob>} Archivo PDF como blob
+   */
+  downloadVoucher(bookingId: number): Observable<Blob> {
+    return this.http.get(`${this.API_URL}/${bookingId}/voucher`, { 
+      responseType: 'blob' 
+    });
+  }
+
+  // ===========================================
+  // MÉTODOS DE ADMINISTRACIÓN
+  // ===========================================
+
+  /**
    * @method getAllBookings
-   * @description Obtiene todas las reservas (solo para administradores)
+   * @description Obtiene todas las reservas del sistema (solo administradores)
    * @param {number} [page=0] - Número de página a consultar
    * @param {number} [size=10] - Cantidad de elementos por página
-   * @param {string} [sortBy='bookingDate'] - Campo por el cual ordenar
-   * @param {string} [sortDir='desc'] - Dirección de ordenamiento ('asc' o 'desc')
-   * @returns {Observable<PageResponse<BookingResponse>>} Respuesta paginada con reservas
+   * @param {string} [sortBy='bookingDate'] - Campo de ordenamiento
+   * @param {string} [sortDir='desc'] - Dirección de ordenamiento
+   * @returns {Observable<PageResponse<BookingResponse>>} Respuesta paginada con todas las reservas
    */
-  getAllBookings(page: number = 0, size: number = 10, sortBy: string = 'bookingDate', sortDir: string = 'desc'): Observable<PageResponse<BookingResponse>> {
+  getAllBookings(
+    page: number = 0, 
+    size: number = 10, 
+    sortBy: string = 'bookingDate', 
+    sortDir: string = 'desc'
+  ): Observable<PageResponse<BookingResponse>> {
     const params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString())
@@ -95,6 +143,40 @@ export class BookingService {
       .set('sortDir', sortDir);
 
     return this.http.get<PageResponse<BookingResponse>>(this.API_URL, { params });
+  }
+
+  /**
+   * @method confirmBooking
+   * @description Confirma una reserva pendiente (solo administradores)
+   * @param {number} bookingId - ID de la reserva a confirmar
+   * @returns {Observable<{message: string, status: string}>} Confirmación de la operación
+   */
+  confirmBooking(bookingId: number): Observable<{message: string, status: string}> {
+    return this.http.put<{message: string, status: string}>(`${this.API_URL}/${bookingId}/confirm`, {});
+  }
+
+  /**
+   * @method completeBooking
+   * @description Marca una reserva como completada (solo administradores)
+   * @param {number} bookingId - ID de la reserva a completar
+   * @returns {Observable<{message: string, status: string}>} Confirmación de la operación
+   */
+  completeBooking(bookingId: number): Observable<{message: string, status: string}> {
+    return this.http.put<{message: string, status: string}>(`${this.API_URL}/${bookingId}/complete`, {});
+  }
+
+  /**
+   * @method exportBookings
+   * @description Exporta todas las reservas a un archivo (solo administradores)
+   * @param {string} [format='xlsx'] - Formato de exportación (xlsx, csv, pdf)
+   * @returns {Observable<Blob>} Archivo de exportación como blob
+   */
+  exportBookings(format: string = 'xlsx'): Observable<Blob> {
+    const params = new HttpParams().set('format', format);
+    return this.http.get(`${this.API_URL}/export`, { 
+      params,
+      responseType: 'blob' 
+    });
   }
 
   /**
@@ -128,51 +210,4 @@ export class BookingService {
     return this.http.get<PageResponse<BookingResponse>>(`${this.API_URL}/upcoming`, { params });
   }
 
-  /**
-   * @method confirmBooking
-   * @description Confirma una reserva pendiente (solo para administradores)
-   * @param {number} id - ID de la reserva a confirmar
-   * @returns {Observable<any>} Respuesta de la operación
-   */
-  confirmBooking(id: number): Observable<any> {
-    return this.http.put(`${this.API_URL}/${id}/confirm`, {});
-  }
-
-  /**
-   * @method completeBooking
-   * @description Marca una reserva como completada (solo para administradores)
-   * @param {number} id - ID de la reserva a completar
-   * @returns {Observable<any>} Respuesta de la operación
-   */
-  completeBooking(id: number): Observable<any> {
-    return this.http.put(`${this.API_URL}/${id}/complete`, {});
-  }
-
-  /**
-   * @method addActivityToBooking
-   * @description Agrega una actividad a una reserva existente
-   * @param {number} bookingId - ID de la reserva
-   * @param {number} activityId - ID de la actividad
-   * @param {number} quantity - Cantidad de personas para la actividad
-   * @returns {Observable<any>} Respuesta de la operación
-   */
-  addActivityToBooking(bookingId: number, activityId: number, quantity: number): Observable<any> {
-    const params = new HttpParams()
-      .set('activityId', activityId.toString())
-      .set('quantity', quantity.toString());
-
-    return this.http.post(`${this.API_URL}/${bookingId}/activities`, null, { params });
-  }
-
-  /**
-   * @method downloadVoucher
-   * @description Descarga el voucher PDF de una reserva
-   * @param {number} bookingId - ID de la reserva
-   * @returns {Observable<Blob>} Archivo PDF como blob
-   */
-  downloadVoucher(bookingId: number): Observable<Blob> {
-    return this.http.get(`${this.API_URL}/${bookingId}/voucher`, { 
-      responseType: 'blob' 
-    });
-  }
 }

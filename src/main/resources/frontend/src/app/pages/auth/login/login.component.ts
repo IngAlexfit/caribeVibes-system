@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { LoginRequest, AuthResponse } from '../../../core/models/user.model';
+import { filter, take } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 
 /**
@@ -76,12 +77,12 @@ export class LoginComponent implements OnInit {
 
       this.authService.login(credentials).subscribe({
         next: (response: AuthResponse) => {
-          this.isLoading = false;
           console.log('Login successful:', response);
           console.log('Auth state after login:', {
             isAuthenticated: this.authService.isAuthenticated(),
             currentUser: this.authService.getCurrentUser(),
-            hasValidToken: this.authService.hasValidToken()
+            hasValidToken: this.authService.hasValidToken(),
+            token: this.authService.getToken()?.substring(0, 20) + '...'
           });
           
           Swal.fire({
@@ -92,27 +93,48 @@ export class LoginComponent implements OnInit {
             timer: 1500
           });
           
-          // Small delay to ensure user data is properly set
-          setTimeout(() => {
-            console.log('About to redirect. Final auth state:', {
-              isAuthenticated: this.authService.isAuthenticated(),
-              currentUser: this.authService.getCurrentUser()
-            });
-            
-            // Redirect based on user role
-            try {
-              if (this.authService.isAdmin()) {
-                console.log('Redirecting to admin dashboard');
-                this.router.navigate(['/admin/dashboard']);
-              } else {
-                console.log('Redirecting to user dashboard');
-                this.router.navigate(['/dashboard']);
+          // Usar el observable de estado de autenticación para asegurar que la navegación
+          // se haga cuando el estado esté completamente establecido
+          this.authService.currentUser$.pipe(
+            filter(user => user !== null),
+            take(1)
+          ).subscribe({
+            next: (user) => {
+              this.isLoading = false;
+              console.log('User state confirmed, proceeding with navigation:', {
+                user: user?.email,
+                isAuthenticated: this.authService.isAuthenticated(),
+                hasValidToken: this.authService.hasValidToken()
+              });
+              
+              // Redirect based on user role
+              try {
+                // Verificar roles directamente del token
+                const user = response.user;
+                const isAdminUser = user.roles && user.roles.includes('ADMIN');
+                console.log('Login: User roles check:', { 
+                  userRoles: user.roles, 
+                  isAdmin: isAdminUser,
+                  authServiceIsAdmin: this.authService.isAdmin()
+                });
+                
+                if (isAdminUser) {
+                  console.log('Redirecting to admin dashboard');
+                  this.router.navigate(['/admin/dashboard']);
+                } else {
+                  console.log('Redirecting to user dashboard');
+                  this.router.navigate(['/dashboard']);
+                }
+              } catch (error) {
+                console.error('Error during navigation:', error);
+                this.isLoading = false;
               }
-            } catch (error) {
-              console.warn('Error checking admin role, redirecting to dashboard:', error);
-              this.router.navigate(['/dashboard']);
+            },
+            error: (error) => {
+              console.error('Error waiting for user state:', error);
+              this.isLoading = false;
             }
-          }, 100);
+          });
         },
         error: (error: any) => {
           this.isLoading = false;

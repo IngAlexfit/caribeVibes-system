@@ -4,6 +4,7 @@ import { RouterModule, Routes } from '@angular/router';
 // Guards
 import { AuthGuard } from './core/guards/auth.guard';
 import { AdminGuard } from './core/guards/admin.guard';
+import { UserGuard } from './core/guards/user.guard';
 
 // Components
 import { HomeComponent } from './pages/home/home.component';
@@ -15,6 +16,11 @@ import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { BookingsComponent } from './pages/bookings/bookings.component';
 import { BookingDetailComponent } from './pages/booking-detail/booking-detail.component';
 import { ContactComponent } from './pages/contact/contact.component';
+
+// Admin Components
+import { AdminDashboardComponent } from './pages/admin/dashboard/admin-dashboard.component';
+import { AdminContactsComponent } from './pages/admin/contacts/admin-contacts.component';
+import { AdminBookingsComponent } from './pages/admin/bookings/admin-bookings.component';
 
 /**
  * @constant {Routes} routes
@@ -37,7 +43,7 @@ const routes: Routes = [
   { 
     path: 'dashboard', 
     component: DashboardComponent,
-    canActivate: [AuthGuard]
+    canActivate: [UserGuard]
   },
   
   // Public pages
@@ -54,14 +60,41 @@ const routes: Routes = [
   { 
     path: 'bookings', 
     component: BookingsComponent,
-    canActivate: [AuthGuard]
+    canActivate: [UserGuard]
   },
   { 
     path: 'bookings/:id', 
     component: BookingDetailComponent,
-    canActivate: [AuthGuard]
+    canActivate: [UserGuard]
   },
   { path: 'reservas', redirectTo: 'bookings', pathMatch: 'full' },
+  
+  // Admin Routes - Protected with AdminGuard
+  { 
+    path: 'admin', 
+    children: [
+      {
+        path: '',
+        redirectTo: 'dashboard',
+        pathMatch: 'full'
+      },
+      {
+        path: 'dashboard',
+        component: AdminDashboardComponent,
+        canActivate: [AdminGuard]
+      },
+      {
+        path: 'contacts',
+        component: AdminContactsComponent,
+        canActivate: [AdminGuard]
+      },
+      {
+        path: 'bookings',
+        component: AdminBookingsComponent,
+        canActivate: [AdminGuard]
+      }
+    ]
+  },
   
   // Wildcard Route
   { path: '**', redirectTo: '', pathMatch: 'full' }

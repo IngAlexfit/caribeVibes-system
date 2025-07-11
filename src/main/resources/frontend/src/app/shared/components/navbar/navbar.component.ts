@@ -24,6 +24,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
   /** @property {boolean} isLoggedIn - Indica si hay un usuario con sesión iniciada */
   isLoggedIn = false;
   
+  /** @property {boolean} isAdmin - Indica si el usuario actual tiene rol de administrador */
+  isAdmin = false;
+  
   /** @property {Subject<void>} destroy$ - Subject para gestionar la cancelación de suscripciones */
   private destroy$ = new Subject<void>();
 
@@ -47,6 +50,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(user => {
         this.currentUser = user;
+        // Actualizar estado de admin
+        this.isAdmin = user ? this.authService.hasRole('ADMIN') : false;
       });
 
     this.authService.isLoggedIn$

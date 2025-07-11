@@ -164,4 +164,5 @@ public interface DestinationRepository extends JpaRepository<Destination, Long> 
      */
     @Query(value = "SELECT * FROM destinations d WHERE JSON_CONTAINS(d.experiences, :experienceSlug)", nativeQuery = true)
     List<Destination> findByExperiences_Slug(@Param("experienceSlug") String experienceSlug);
+
 }

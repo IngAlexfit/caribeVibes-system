@@ -491,6 +491,17 @@ public class DestinationService {
     }
 
     /**
+     * Cuenta el total de destinos activos en el sistema.
+     * 
+     * @return Número total de destinos activos
+     */
+    @Transactional(readOnly = true)
+    public long countActiveDestinations() {
+        log.debug("Contando todos los destinos");
+        return destinationRepository.count();
+    }
+
+    /**
      * DTO para estadísticas de destinos
      */
     @lombok.Data

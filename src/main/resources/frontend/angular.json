@@ -74,13 +74,16 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
-          "options": {},
+          "options": {
+            "proxyConfig": "proxy.conf.json"
+          },
           "configurations": {
             "production": {
               "buildTarget": "caribe-vibes-frontend:build:production"
             },
             "development": {
-              "buildTarget": "caribe-vibes-frontend:build:development"
+              "buildTarget": "caribe-vibes-frontend:build:development",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"

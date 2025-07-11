@@ -1,0 +1,366 @@
+<div class="admin-bookings-container">
+  <!-- Header -->
+  <div class="header-section">
+    <h2 class="page-title">
+      <i class="fas fa-calendar-check"></i>
+      Gestión de Reservas
+    </h2>
+    <p class="page-subtitle">Administra todas las reservas del sistema</p>
+  </div>
+
+  <!-- Filtros y Acciones -->
+  <div class="filters-section">
+    <div class="row">
+      <div class="col-md-3">
+        <label for="statusFilter" class="form-label">Estado:</label>
+        <select 
+          id="statusFilter" 
+          class="form-select" 
+          [(ngModel)]="selectedStatus" 
+          (change)="applyFilters()">
+          <option value="">Todos los estados</option>
+          <option value="PENDING">Pendiente</option>
+          <option value="CONFIRMED">Confirmada</option>
+          <option value="COMPLETED">Completada</option>
+          <option value="CANCELLED">Cancelada</option>
+        </select>
+      </div>
+      
+      <div class="col-md-3">
+        <label for="dateFromFilter" class="form-label">Desde:</label>
+        <input 
+          type="date" 
+          id="dateFromFilter" 
+          class="form-control" 
+          [(ngModel)]="dateFrom" 
+          (change)="applyFilters()">
+      </div>
+      
+      <div class="col-md-3">
+        <label for="dateToFilter" class="form-label">Hasta:</label>
+        <input 
+          type="date" 
+          id="dateToFilter" 
+          class="form-control" 
+          [(ngModel)]="dateTo" 
+          (change)="applyFilters()">
+      </div>
+      
+      <div class="col-md-3">
+        <label for="searchFilter" class="form-label">Buscar:</label>
+        <input 
+          type="text" 
+          id="searchFilter" 
+          class="form-control" 
+          placeholder="Cliente, email, ID..." 
+          [(ngModel)]="searchTerm" 
+          (input)="applyFilters()">
+      </div>
+    </div>
+    
+    <div class="action-buttons mt-3">
+      <button 
+        class="btn btn-outline-secondary" 
+        (click)="clearFilters()"
+        [disabled]="loading">
+        <i class="fas fa-times"></i>
+        Limpiar Filtros
+      </button>
+      
+      <button 
+        class="btn btn-primary" 
+        (click)="exportBookings()"
+        [disabled]="loading">
+        <i class="fas fa-download"></i>
+        Exportar Reservas
+      </button>
+      
+      <button 
+        class="btn btn-info" 
+        (click)="refreshBookings()"
+        [disabled]="loading">
+        <i class="fas fa-sync-alt" [class.fa-spin]="loading"></i>
+        Actualizar
+      </button>
+    </div>
+  </div>
+
+  <!-- Estadísticas Rápidas -->
+  <div class="stats-section" *ngIf="statistics">
+    <div class="row">
+      <div class="col-md-3">
+        <div class="stat-card stat-total">
+          <div class="stat-icon">
+            <i class="fas fa-calendar-check"></i>
+          </div>
+          <div class="stat-content">
+            <h3>{{ statistics.total }}</h3>
+            <p>Total de Reservas</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-3">
+        <div class="stat-card stat-pending">
+          <div class="stat-icon">
+            <i class="fas fa-clock"></i>
+          </div>
+          <div class="stat-content">
+            <h3>{{ statistics.pending }}</h3>
+            <p>Pendientes</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-3">
+        <div class="stat-card stat-confirmed">
+          <div class="stat-icon">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <div class="stat-content">
+            <h3>{{ statistics.confirmed }}</h3>
+            <p>Confirmadas</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-3">
+        <div class="stat-card stat-completed">
+          <div class="stat-icon">
+            <i class="fas fa-flag-checkered"></i>
+          </div>
+          <div class="stat-content">
+            <h3>{{ statistics.completed }}</h3>
+            <p>Completadas</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div class="text-center my-4" *ngIf="loading">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p class="mt-2">Cargando reservas...</p>
+  </div>
+
+  <!-- Lista de Reservas -->
+  <div class="bookings-section" *ngIf="!loading">
+    <div class="table-responsive">
+      <table class="table table-hover">
+        <thead class="table-dark">
+          <tr>
+            <th>ID</th>
+            <th>Cliente</th>
+            <th>Email</th>
+            <th>Fecha Reserva</th>
+            <th>Check-in</th>
+            <th>Check-out</th>
+            <th>Huéspedes</th>
+            <th>Estado</th>
+            <th>Total</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let booking of filteredBookings; trackBy: trackByBookingId" 
+              [class.table-warning]="booking.status === 'PENDING'"
+              [class.table-success]="booking.status === 'CONFIRMED'"
+              [class.table-info]="booking.status === 'COMPLETED'"
+              [class.table-danger]="booking.status === 'CANCELLED'">
+            <td>
+              <strong>#{{ booking.id }}</strong>
+            </td>
+            <td>
+              {{ booking.customerName }}
+            </td>
+            <td>
+              <a [href]="'mailto:' + booking.customerEmail">
+                {{ booking.customerEmail }}
+              </a>
+            </td>
+            <td>
+              {{ booking.createdAt | date:'dd/MM/yyyy HH:mm' }}
+            </td>
+            <td>
+              {{ booking.checkInDate | date:'dd/MM/yyyy' }}
+            </td>
+            <td>
+              {{ booking.checkOutDate | date:'dd/MM/yyyy' }}
+            </td>
+            <td>
+              <span class="badge bg-secondary">
+                {{ booking.guests }} {{ booking.guests === 1 ? 'huésped' : 'huéspedes' }}
+              </span>
+            </td>
+            <td>
+              <span class="badge" 
+                    [class.bg-warning]="booking.status === 'PENDING'"
+                    [class.bg-success]="booking.status === 'CONFIRMED'"
+                    [class.bg-info]="booking.status === 'COMPLETED'"
+                    [class.bg-danger]="booking.status === 'CANCELLED'">
+                {{ getStatusText(booking.status) }}
+              </span>
+            </td>
+            <td>
+              <strong>${{ booking.totalAmount | number:'1.2-2' }}</strong>
+            </td>
+            <td>
+              <div class="btn-group" role="group">
+                <!-- Ver Detalles -->
+                <button 
+                  class="btn btn-sm btn-outline-primary"
+                  (click)="viewBookingDetails(booking)"
+                  title="Ver detalles">
+                  <i class="fas fa-eye"></i>
+                </button>
+                
+                <!-- Confirmar (solo para PENDING) -->
+                <button 
+                  class="btn btn-sm btn-success"
+                  *ngIf="booking.status === 'PENDING'"
+                  (click)="confirmBooking(booking.id)"
+                  title="Confirmar reserva">
+                  <i class="fas fa-check"></i>
+                </button>
+                
+                <!-- Completar (solo para CONFIRMED) -->
+                <button 
+                  class="btn btn-sm btn-info"
+                  *ngIf="booking.status === 'CONFIRMED'"
+                  (click)="completeBooking(booking.id)"
+                  title="Marcar como completada">
+                  <i class="fas fa-flag-checkered"></i>
+                </button>
+                
+                <!-- Descargar Voucher -->
+                <button 
+                  class="btn btn-sm btn-outline-secondary"
+                  *ngIf="booking.status !== 'CANCELLED'"
+                  (click)="downloadVoucher(booking.id)"
+                  title="Descargar voucher">
+                  <i class="fas fa-download"></i>
+                </button>
+                
+                <!-- Cancelar (solo para PENDING y CONFIRMED) -->
+                <button 
+                  class="btn btn-sm btn-danger"
+                  *ngIf="booking.status === 'PENDING' || booking.status === 'CONFIRMED'"
+                  (click)="cancelBooking(booking.id)"
+                  title="Cancelar reserva">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <!-- No hay reservas -->
+      <div class="text-center py-4" *ngIf="filteredBookings.length === 0">
+        <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+        <h5 class="text-muted">No se encontraron reservas</h5>
+        <p class="text-muted">
+          {{ hasFiltersApplied() ? 'Intenta ajustar los filtros de búsqueda' : 'Aún no hay reservas en el sistema' }}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Paginación -->
+  <nav aria-label="Paginación de reservas" *ngIf="filteredBookings.length > 0">
+    <ul class="pagination justify-content-center">
+      <li class="page-item" [class.disabled]="currentPage === 1">
+        <a class="page-link" (click)="goToPage(currentPage - 1)" href="#">
+          <i class="fas fa-chevron-left"></i>
+        </a>
+      </li>
+      
+      <li class="page-item" 
+          *ngFor="let page of getPageNumbers()" 
+          [class.active]="page === currentPage">
+        <a class="page-link" (click)="goToPage(page)" href="#">{{ page }}</a>
+      </li>
+      
+      <li class="page-item" [class.disabled]="currentPage === getTotalPages()">
+        <a class="page-link" (click)="goToPage(currentPage + 1)" href="#">
+          <i class="fas fa-chevron-right"></i>
+        </a>
+      </li>
+    </ul>
+  </nav>
+</div>
+
+<!-- Modal para Detalles de Reserva -->
+<div class="modal fade" id="bookingDetailsModal" tabindex="-1" aria-labelledby="bookingDetailsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content" *ngIf="selectedBooking">
+      <div class="modal-header">
+        <h5 class="modal-title" id="bookingDetailsModalLabel">
+          <i class="fas fa-calendar-check"></i>
+          Detalles de Reserva #{{ selectedBooking.id }}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-md-6">
+            <h6><i class="fas fa-user"></i> Información del Cliente</h6>
+            <p><strong>Nombre:</strong> {{ selectedBooking.customerName }}</p>
+            <p><strong>Email:</strong> {{ selectedBooking.customerEmail }}</p>
+            <p><strong>Teléfono:</strong> {{ selectedBooking.customerPhone || 'No especificado' }}</p>
+          </div>
+          <div class="col-md-6">
+            <h6><i class="fas fa-calendar"></i> Información de la Reserva</h6>
+            <p><strong>Check-in:</strong> {{ selectedBooking.checkInDate | date:'dd/MM/yyyy' }}</p>
+            <p><strong>Check-out:</strong> {{ selectedBooking.checkOutDate | date:'dd/MM/yyyy' }}</p>
+            <p><strong>Huéspedes:</strong> {{ selectedBooking.guests }}</p>
+            <p><strong>Noches:</strong> {{ calculateNights(selectedBooking.checkInDate, selectedBooking.checkOutDate) }}</p>
+          </div>
+        </div>
+        
+        <div class="row mt-3">
+          <div class="col-md-6">
+            <h6><i class="fas fa-info-circle"></i> Estado y Fechas</h6>
+            <p><strong>Estado:</strong> 
+              <span class="badge" 
+                    [class.bg-warning]="selectedBooking.status === 'PENDING'"
+                    [class.bg-success]="selectedBooking.status === 'CONFIRMED'"
+                    [class.bg-info]="selectedBooking.status === 'COMPLETED'"
+                    [class.bg-danger]="selectedBooking.status === 'CANCELLED'">
+                {{ getStatusText(selectedBooking.status) }}
+              </span>
+            </p>
+            <p><strong>Creada:</strong> {{ selectedBooking.createdAt | date:'dd/MM/yyyy HH:mm' }}</p>
+            <p><strong>Actualizada:</strong> {{ selectedBooking.updatedAt | date:'dd/MM/yyyy HH:mm' }}</p>
+          </div>
+          <div class="col-md-6">
+            <h6><i class="fas fa-dollar-sign"></i> Información Financiera</h6>
+            <p><strong>Total:</strong> ${{ selectedBooking.totalAmount | number:'1.2-2' }}</p>
+            <p><strong>Método de Pago:</strong> {{ selectedBooking.paymentMethod || 'No especificado' }}</p>
+            <p><strong>Estado de Pago:</strong> {{ selectedBooking.paymentStatus || 'No especificado' }}</p>
+          </div>
+        </div>
+        
+        <div class="row mt-3" *ngIf="selectedBooking.specialRequests">
+          <div class="col-12">
+            <h6><i class="fas fa-comment"></i> Solicitudes Especiales</h6>
+            <p class="border p-2 rounded bg-light">{{ selectedBooking.specialRequests }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        <button 
+          type="button" 
+          class="btn btn-primary"
+          (click)="downloadVoucher(selectedBooking.id)">
+          <i class="fas fa-download"></i>
+          Descargar Voucher
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

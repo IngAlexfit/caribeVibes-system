@@ -227,4 +227,11 @@ public interface HotelRepository extends JpaRepository<Hotel, Long> {
      * @return Página de hoteles que coinciden con el nombre
      */
     Page<Hotel> findByNameContainingIgnoreCaseAndIsActiveTrueOrderByNameAsc(String name, Pageable pageable);
+
+    /**
+     * Cuenta el total de hoteles activos en el sistema
+     * 
+     * @return Número total de hoteles activos
+     */
+    long countByIsActiveTrue();
 }
