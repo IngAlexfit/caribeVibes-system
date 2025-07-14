@@ -88,10 +88,16 @@ export interface Activity {
 export interface User {
   /** @property {number} id - Identificador único del usuario */
   id: number;
-  /** @property {string} name - Nombre del usuario */
-  name: string;
+  /** @property {string} firstName - Nombre del usuario */
+  firstName: string;
+  /** @property {string} lastName - Apellido del usuario */
+  lastName: string;
   /** @property {string} email - Email del usuario */
   email: string;
+  /** @property {string} phone - Teléfono del usuario */
+  phone?: string;
+  /** @property {string} fullName - Nombre completo del usuario */
+  fullName?: string;
 }
 
 /**
@@ -159,8 +165,8 @@ export interface BookingRequest {
 export interface BookingResponse {
   /** @property {number} id - Identificador único de la reserva */
   id: number;
-  /** @property {number} userId - ID del usuario que realizó la reserva */
-  userId: number;
+  /** @property {string} confirmationCode - Código de confirmación de la reserva */
+  confirmationCode: string;
   /** @property {string} checkInDate - Fecha de entrada */
   checkInDate: string;
   /** @property {string} checkOutDate - Fecha de salida */

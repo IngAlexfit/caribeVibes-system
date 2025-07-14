@@ -1,5 +1,9 @@
 package org.project.caribevibes.service.booking;
 
+import org.project.caribevibes.dto.response.BookingResponseDTO;
+import org.project.caribevibes.dto.response.UserBasicDTO;
+import org.project.caribevibes.dto.response.HotelBasicDTO;
+import org.project.caribevibes.dto.response.RoomTypeBasicDTO;
 import org.project.caribevibes.entity.booking.Booking;
 import org.project.caribevibes.entity.booking.BookingActivity;
 import org.project.caribevibes.entity.destination.Activity;
@@ -515,5 +519,142 @@ public class BookingService {
     public long countAllBookings() {
         logger.debug("Contando todas las reservas activas");
         return bookingRepository.countByIsActiveTrue();
+    }
+
+    // ================================
+    // MÉTODOS ESPECÍFICOS PARA ADMINISTRADORES
+    // ================================
+
+    /**
+     * Obtiene todas las reservas del sistema para administradores (incluyendo inactivas).
+     * 
+     * @param pageable Configuración de paginación
+     * @return Página de reservas para administradores
+     */
+    @Transactional(readOnly = true)
+    public Page<BookingResponseDTO> getAllBookingsForAdmin(Pageable pageable) {
+        logger.debug("Admin obteniendo todas las reservas - página: {}, tamaño: {}", 
+                    pageable.getPageNumber(), pageable.getPageSize());
+        
+        Page<Booking> bookings = bookingRepository.findAll(pageable);
+        return bookings.map(this::convertToBookingResponseDTO);
+    }
+
+    /**
+     * Obtiene una reserva específica por ID para administradores.
+     * 
+     * @param id ID de la reserva
+     * @return DTO de respuesta de reserva
+     * @throws RuntimeException si la reserva no existe
+     */
+    @Transactional(readOnly = true)
+    public BookingResponseDTO getBookingByIdForAdmin(Long id) {
+        logger.debug("Admin obteniendo reserva con ID: {}", id);
+        
+        Booking booking = bookingRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Reserva no encontrada con ID: " + id));
+        
+        return convertToBookingResponseDTO(booking);
+    }
+
+    /**
+     * Cuenta las reservas por estado específico.
+     * 
+     * @param status Estado de la reserva
+     * @return Número de reservas con el estado especificado
+     */
+    @Transactional(readOnly = true)
+    public long countBookingsByStatus(String status) {
+        logger.debug("Contando reservas con estado: {}", status);
+        try {
+            Booking.BookingStatus bookingStatus = Booking.BookingStatus.valueOf(status.toUpperCase());
+            return bookingRepository.countByStatus(bookingStatus);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Estado de reserva inválido: {}", status);
+            return 0;
+        }
+    }
+
+    /**
+     * Actualiza el estado de una reserva (solo para administradores).
+     * 
+     * @param id ID de la reserva
+     * @param status Nuevo estado
+     * @throws RuntimeException si la reserva no existe
+     */
+    @Transactional
+    public void updateBookingStatusByAdmin(Long id, String status) {
+        logger.debug("Admin actualizando estado de reserva {} a: {}", id, status);
+        
+        // Verificar que la reserva existe
+        if (!bookingRepository.existsById(id)) {
+            throw new RuntimeException("Reserva no encontrada con ID: " + id);
+        }
+        
+        try {
+            Booking.BookingStatus bookingStatus = Booking.BookingStatus.valueOf(status.toUpperCase());
+            
+            // Usar actualización directa para evitar validaciones de entidad
+            int updatedRows = bookingRepository.updateBookingStatus(id, bookingStatus);
+            
+            if (updatedRows > 0) {
+                logger.info("Estado de reserva {} actualizado a {} por administrador", id, status);
+            } else {
+                throw new RuntimeException("No se pudo actualizar el estado de la reserva");
+            }
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Estado de reserva inválido: " + status);
+        }
+    }
+
+    /**
+     * Convierte una entidad Booking a BookingResponseDTO.
+     * 
+     * @param booking Entidad de reserva
+     * @return DTO de respuesta de reserva
+     */
+    private BookingResponseDTO convertToBookingResponseDTO(Booking booking) {
+        BookingResponseDTO dto = new BookingResponseDTO();
+        dto.setId(booking.getId());
+        dto.setConfirmationCode(booking.getConfirmationCode());
+        dto.setCheckInDate(booking.getCheckInDate());
+        dto.setCheckOutDate(booking.getCheckOutDate());
+        dto.setNumGuests(booking.getNumberOfGuests());
+        dto.setNumRooms(booking.getNumberOfRooms());
+        dto.setStatus(booking.getStatus().name());
+        dto.setTotalPrice(booking.getTotalPrice());
+        dto.setBookingDate(booking.getBookingDate());
+        dto.setSpecialRequests(booking.getSpecialRequests());
+        
+        // Información del usuario
+        if (booking.getUser() != null) {
+            UserBasicDTO userDto = new UserBasicDTO();
+            userDto.setId(booking.getUser().getId());
+            userDto.setFirstName(booking.getUser().getFirstName());
+            userDto.setLastName(booking.getUser().getLastName());
+            userDto.setEmail(booking.getUser().getEmail());
+            dto.setUser(userDto);
+        }
+        
+        // Información del hotel
+        if (booking.getHotel() != null) {
+            HotelBasicDTO hotelDto = new HotelBasicDTO();
+            hotelDto.setId(booking.getHotel().getId());
+            hotelDto.setName(booking.getHotel().getName());
+            hotelDto.setAddress(booking.getHotel().getAddress());
+            dto.setHotel(hotelDto);
+        }
+        
+        // Información del tipo de habitación
+        if (booking.getRoomType() != null) {
+            RoomTypeBasicDTO roomTypeDto = new RoomTypeBasicDTO();
+            roomTypeDto.setId(booking.getRoomType().getId());
+            roomTypeDto.setName(booking.getRoomType().getName());
+            roomTypeDto.setMaxOccupancy(booking.getRoomType().getCapacity());
+            roomTypeDto.setPricePerNight(booking.getRoomType().getPricePerNight());
+            dto.setRoomType(roomTypeDto);
+        }
+        
+        return dto;
     }
 }

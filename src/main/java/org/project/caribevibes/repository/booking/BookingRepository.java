@@ -6,6 +6,7 @@ import org.project.caribevibes.entity.hotel.Hotel;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -331,5 +332,26 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
      * @return Número total de reservas activas
      */
     long countByIsActiveTrue();
+
+    /**
+     * Cuenta reservas por estado específico
+     * 
+     * @param status Estado de la reserva
+     * @return Número de reservas con el estado especificado
+     */
+    long countByStatus(Booking.BookingStatus status);
+
+    /**
+     * Actualiza el estado de una reserva específica directamente en la base de datos.
+     * Este método evita las validaciones de entidad para permitir actualizar
+     * reservas existentes sin restricciones de fechas.
+     * 
+     * @param id ID de la reserva a actualizar
+     * @param status Nuevo estado de la reserva
+     * @return Número de filas afectadas
+     */
+    @Modifying
+    @Query("UPDATE Booking b SET b.status = :status WHERE b.id = :id")
+    int updateBookingStatus(@Param("id") Long id, @Param("status") Booking.BookingStatus status);
 
 }

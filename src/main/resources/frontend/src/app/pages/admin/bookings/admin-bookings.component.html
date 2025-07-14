@@ -10,8 +10,8 @@
 
   <!-- Filtros y Acciones -->
   <div class="filters-section">
-    <div class="row">
-      <div class="col-md-3">
+    <div class="row g-3">
+      <div class="col-md-3 col-sm-6">
         <label for="statusFilter" class="form-label">Estado:</label>
         <select 
           id="statusFilter" 
@@ -26,7 +26,7 @@
         </select>
       </div>
       
-      <div class="col-md-3">
+      <div class="col-md-3 col-sm-6">
         <label for="dateFromFilter" class="form-label">Desde:</label>
         <input 
           type="date" 
@@ -36,7 +36,7 @@
           (change)="applyFilters()">
       </div>
       
-      <div class="col-md-3">
+      <div class="col-md-3 col-sm-6">
         <label for="dateToFilter" class="form-label">Hasta:</label>
         <input 
           type="date" 
@@ -46,7 +46,7 @@
           (change)="applyFilters()">
       </div>
       
-      <div class="col-md-3">
+      <div class="col-md-3 col-sm-6">
         <label for="searchFilter" class="form-label">Buscar:</label>
         <input 
           type="text" 
@@ -59,36 +59,38 @@
     </div>
     
     <div class="action-buttons mt-3">
-      <button 
-        class="btn btn-outline-secondary" 
-        (click)="clearFilters()"
-        [disabled]="loading">
-        <i class="fas fa-times"></i>
-        Limpiar Filtros
-      </button>
-      
-      <button 
-        class="btn btn-primary" 
-        (click)="exportBookings()"
-        [disabled]="loading">
-        <i class="fas fa-download"></i>
-        Exportar Reservas
-      </button>
-      
-      <button 
-        class="btn btn-info" 
-        (click)="refreshBookings()"
-        [disabled]="loading">
-        <i class="fas fa-sync-alt" [class.fa-spin]="loading"></i>
-        Actualizar
-      </button>
+      <div class="d-flex flex-wrap gap-2">
+        <button 
+          class="btn btn-outline-secondary" 
+          (click)="clearFilters()"
+          [disabled]="loading">
+          <i class="fas fa-times"></i>
+          <span class="d-none d-sm-inline">Limpiar Filtros</span>
+        </button>
+        
+        <button 
+          class="btn btn-primary" 
+          (click)="exportBookings()"
+          [disabled]="loading">
+          <i class="fas fa-download"></i>
+          <span class="d-none d-sm-inline">Exportar</span>
+        </button>
+        
+        <button 
+          class="btn btn-info" 
+          (click)="refreshBookings()"
+          [disabled]="loading">
+          <i class="fas fa-sync-alt" [class.fa-spin]="loading"></i>
+          <span class="d-none d-sm-inline">Actualizar</span>
+        </button>
+      </div>
     </div>
   </div>
 
   <!-- Estadísticas Rápidas -->
   <div class="stats-section" *ngIf="statistics">
-    <div class="row">
-      <div class="col-md-3">
+    <div class="row g-3">
+      <div class="col-lg-3 col-md-6 col-sm-6">
         <div class="stat-card stat-total">
           <div class="stat-icon">
             <i class="fas fa-calendar-check"></i>
@@ -100,7 +102,7 @@
         </div>
       </div>
       
-      <div class="col-md-3">
+      <div class="col-lg-3 col-md-6 col-sm-6">
         <div class="stat-card stat-pending">
           <div class="stat-icon">
             <i class="fas fa-clock"></i>
@@ -112,7 +114,7 @@
         </div>
       </div>
       
-      <div class="col-md-3">
+      <div class="col-lg-3 col-md-6 col-sm-6">
         <div class="stat-card stat-confirmed">
           <div class="stat-icon">
             <i class="fas fa-check-circle"></i>
@@ -124,7 +126,7 @@
         </div>
       </div>
       
-      <div class="col-md-3">
+      <div class="col-lg-3 col-md-6 col-sm-6">
         <div class="stat-card stat-completed">
           <div class="stat-icon">
             <i class="fas fa-flag-checkered"></i>
@@ -148,14 +150,18 @@
 
   <!-- Lista de Reservas -->
   <div class="bookings-section" *ngIf="!loading">
-    <div class="table-responsive">
+    <!-- Vista de tabla para desktop y tablet grande -->
+    <div class="table-responsive d-none d-md-block" id="bookings-table-container">
+      <!-- Mensaje de ayuda para scroll en pantallas medianas -->
+      <div class="scroll-hint d-none d-lg-block d-xl-none">
+        <i class="fas fa-arrow-right"></i>
+        Desliza horizontalmente para ver todas las columnas
+      </div>
       <table class="table table-hover">
         <thead class="table-dark">
           <tr>
             <th>ID</th>
             <th>Cliente</th>
-            <th>Email</th>
-            <th>Fecha Reserva</th>
             <th>Check-in</th>
             <th>Check-out</th>
             <th>Huéspedes</th>
@@ -174,15 +180,7 @@
               <strong>#{{ booking.id }}</strong>
             </td>
             <td>
-              {{ booking.customerName }}
-            </td>
-            <td>
-              <a [href]="'mailto:' + booking.customerEmail">
-                {{ booking.customerEmail }}
-              </a>
-            </td>
-            <td>
-              {{ booking.createdAt | date:'dd/MM/yyyy HH:mm' }}
+              {{ booking.user.firstName }} {{ booking.user.lastName }}
             </td>
             <td>
               {{ booking.checkInDate | date:'dd/MM/yyyy' }}
@@ -192,7 +190,7 @@
             </td>
             <td>
               <span class="badge bg-secondary">
-                {{ booking.guests }} {{ booking.guests === 1 ? 'huésped' : 'huéspedes' }}
+                {{ booking.numGuests }} {{ booking.numGuests === 1 ? 'huésped' : 'huéspedes' }}
               </span>
             </td>
             <td>
@@ -205,7 +203,7 @@
               </span>
             </td>
             <td>
-              <strong>${{ booking.totalAmount | number:'1.2-2' }}</strong>
+              <strong>${{ booking.totalPrice | currency:'COP':'symbol':'1.0-0' }}</strong>
             </td>
             <td>
               <div class="btn-group" role="group">
@@ -257,39 +255,236 @@
           </tr>
         </tbody>
       </table>
-      
-      <!-- No hay reservas -->
-      <div class="text-center py-4" *ngIf="filteredBookings.length === 0">
-        <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
-        <h5 class="text-muted">No se encontraron reservas</h5>
-        <p class="text-muted">
-          {{ hasFiltersApplied() ? 'Intenta ajustar los filtros de búsqueda' : 'Aún no hay reservas en el sistema' }}
-        </p>
+    </div>
+
+    <!-- Vista de cards para móvil y tablet pequeño -->
+    <div class="d-md-none">
+      <div class="booking-card mb-3" 
+           *ngFor="let booking of filteredBookings; trackBy: trackByBookingId"
+           [class.card-warning]="booking.status === 'PENDING'"
+           [class.card-success]="booking.status === 'CONFIRMED'"
+           [class.card-info]="booking.status === 'COMPLETED'"
+           [class.card-danger]="booking.status === 'CANCELLED'">
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+              <strong>#{{ booking.id }}</strong>
+              <span class="badge ms-2" 
+                    [class.bg-warning]="booking.status === 'PENDING'"
+                    [class.bg-success]="booking.status === 'CONFIRMED'"
+                    [class.bg-info]="booking.status === 'COMPLETED'"
+                    [class.bg-danger]="booking.status === 'CANCELLED'">
+                {{ getStatusText(booking.status) }}
+              </span>
+            </div>
+            <div class="card-total">
+              <strong>${{ booking.totalPrice | currency:'COP':'symbol':'1.0-0' }}</strong>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-6">
+                <div class="booking-detail">
+                  <i class="fas fa-user text-primary"></i>
+                  <div class="detail-content">
+                    <small class="text-muted">Cliente</small>
+                    <div>{{ booking.user.firstName }} {{ booking.user.lastName }}</div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="booking-detail">
+                  <i class="fas fa-envelope text-primary"></i>
+                  <div class="detail-content">
+                    <small class="text-muted">Email</small>
+                    <div>
+                      <a [href]="'mailto:' + booking.user.email" class="text-decoration-none">
+                        {{ booking.user.email }}
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="row mt-2">
+              <div class="col-6">
+                <div class="booking-detail">
+                  <i class="fas fa-calendar-check text-success"></i>
+                  <div class="detail-content">
+                    <small class="text-muted">Check-in</small>
+                    <div>{{ booking.checkInDate | date:'dd/MM/yyyy' }}</div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="booking-detail">
+                  <i class="fas fa-calendar-times text-danger"></i>
+                  <div class="detail-content">
+                    <small class="text-muted">Check-out</small>
+                    <div>{{ booking.checkOutDate | date:'dd/MM/yyyy' }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="row mt-2">
+              <div class="col-6">
+                <div class="booking-detail">
+                  <i class="fas fa-users text-info"></i>
+                  <div class="detail-content">
+                    <small class="text-muted">Huéspedes</small>
+                    <div>
+                      <span class="badge bg-secondary">
+                        {{ booking.numGuests }} {{ booking.numGuests === 1 ? 'huésped' : 'huéspedes' }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="booking-detail">
+                  <i class="fas fa-clock text-warning"></i>
+                  <div class="detail-content">
+                    <small class="text-muted">Creada</small>
+                    <div>{{ booking.bookingDate | date:'dd/MM/yyyy' }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer">
+            <div class="d-flex flex-wrap gap-1 justify-content-end">
+              <!-- Ver Detalles -->
+              <button 
+                class="btn btn-sm btn-outline-primary"
+                (click)="viewBookingDetails(booking)"
+                title="Ver detalles">
+                <i class="fas fa-eye"></i>
+                <span class="d-none d-sm-inline ms-1">Ver</span>
+              </button>
+              
+              <!-- Confirmar (solo para PENDING) -->
+              <button 
+                class="btn btn-sm btn-success"
+                *ngIf="booking.status === 'PENDING'"
+                (click)="confirmBooking(booking.id)"
+                title="Confirmar reserva">
+                <i class="fas fa-check"></i>
+                <span class="d-none d-sm-inline ms-1">Confirmar</span>
+              </button>
+              
+              <!-- Completar (solo para CONFIRMED) -->
+              <button 
+                class="btn btn-sm btn-info"
+                *ngIf="booking.status === 'CONFIRMED'"
+                (click)="completeBooking(booking.id)"
+                title="Marcar como completada">
+                <i class="fas fa-flag-checkered"></i>
+                <span class="d-none d-sm-inline ms-1">Completar</span>
+              </button>
+              
+              <!-- Descargar Voucher -->
+              <button 
+                class="btn btn-sm btn-outline-secondary"
+                *ngIf="booking.status !== 'CANCELLED'"
+                (click)="downloadVoucher(booking.id)"
+                title="Descargar voucher">
+                <i class="fas fa-download"></i>
+                <span class="d-none d-sm-inline ms-1">Voucher</span>
+              </button>
+              
+              <!-- Cancelar (solo para PENDING y CONFIRMED) -->
+              <button 
+                class="btn btn-sm btn-danger"
+                *ngIf="booking.status === 'PENDING' || booking.status === 'CONFIRMED'"
+                (click)="cancelBooking(booking.id)"
+                title="Cancelar reserva">
+                <i class="fas fa-times"></i>
+                <span class="d-none d-sm-inline ms-1">Cancelar</span>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
+    </div>
+      
+    <!-- No hay reservas -->
+    <div class="text-center py-4" *ngIf="filteredBookings.length === 0">
+      <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+      <h5 class="text-muted">No se encontraron reservas</h5>
+      <p class="text-muted">
+        {{ hasFiltersApplied() ? 'Intenta ajustar los filtros de búsqueda' : 'Aún no hay reservas en el sistema' }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Controles de Paginación -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mt-3 gap-2" *ngIf="filteredBookings.length > 0 && bookingsPage">
+    <!-- Selector de tamaño de página -->
+    <div class="d-flex align-items-center">
+      <label for="pageSizeSelect" class="form-label me-2 mb-0">
+        <span class="d-none d-sm-inline">Mostrar:</span>
+        <span class="d-sm-none">Items:</span>
+      </label>
+      <select 
+        id="pageSizeSelect" 
+        class="form-select form-select-sm" 
+        style="width: auto;" 
+        [(ngModel)]="pageSize" 
+        (ngModelChange)="onPageSizeChange($event)">
+        <option [value]="5">5</option>
+        <option [value]="10">10</option>
+        <option [value]="25">25</option>
+        <option [value]="50">50</option>
+        <option [value]="100">100</option>
+      </select>
+      <span class="ms-1 d-none d-sm-inline">por página</span>
+    </div>
+
+    <!-- Información de registros -->
+    <div class="text-muted">
+      <small>
+        <span class="d-none d-md-inline">Mostrando</span>
+        {{ (bookingsPage.number * bookingsPage.size) + 1 }}-{{ Math.min((bookingsPage.number + 1) * bookingsPage.size, bookingsPage.totalElements) }} 
+        <span class="d-none d-md-inline">de</span><span class="d-md-none">/</span> {{ bookingsPage.totalElements }}
+        <span class="d-none d-sm-inline">registros</span>
+      </small>
     </div>
   </div>
 
   <!-- Paginación -->
-  <nav aria-label="Paginación de reservas" *ngIf="filteredBookings.length > 0">
-    <ul class="pagination justify-content-center">
-      <li class="page-item" [class.disabled]="currentPage === 1">
-        <a class="page-link" (click)="goToPage(currentPage - 1)" href="#">
+  <nav aria-label="Paginación de reservas" *ngIf="filteredBookings.length > 0 && bookingsPage">
+    <ul class="pagination justify-content-center mt-3">
+      <li class="page-item" [class.disabled]="bookingsPage.number === 0">
+        <button class="page-link" 
+                (click)="goToPage(bookingsPage.number - 1)" 
+                [disabled]="bookingsPage.number === 0">
           <i class="fas fa-chevron-left"></i>
-        </a>
+        </button>
       </li>
       
       <li class="page-item" 
           *ngFor="let page of getPageNumbers()" 
-          [class.active]="page === currentPage">
-        <a class="page-link" (click)="goToPage(page)" href="#">{{ page }}</a>
+          [class.active]="page === bookingsPage.number">
+        <button class="page-link" (click)="goToPage(page)">{{ page + 1 }}</button>
       </li>
       
-      <li class="page-item" [class.disabled]="currentPage === getTotalPages()">
-        <a class="page-link" (click)="goToPage(currentPage + 1)" href="#">
+      <li class="page-item" [class.disabled]="bookingsPage.number >= bookingsPage.totalPages - 1">
+        <button class="page-link" 
+                (click)="goToPage(bookingsPage.number + 1)" 
+                [disabled]="bookingsPage.number >= bookingsPage.totalPages - 1">
           <i class="fas fa-chevron-right"></i>
-        </a>
+        </button>
       </li>
     </ul>
+    
+    <div class="text-center mt-2">
+      <small class="text-muted">
+        Página {{ bookingsPage.number + 1 }} de {{ bookingsPage.totalPages }} 
+        ({{ bookingsPage.totalElements }} registros total)
+      </small>
+    </div>
   </nav>
 </div>
 
@@ -308,16 +503,16 @@
         <div class="row">
           <div class="col-md-6">
             <h6><i class="fas fa-user"></i> Información del Cliente</h6>
-            <p><strong>Nombre:</strong> {{ selectedBooking.customerName }}</p>
-            <p><strong>Email:</strong> {{ selectedBooking.customerEmail }}</p>
-            <p><strong>Teléfono:</strong> {{ selectedBooking.customerPhone || 'No especificado' }}</p>
+            <p><strong>Nombre:</strong> {{ selectedBooking.user.firstName }} {{ selectedBooking.user.lastName }}</p>
+            <p><strong>Email:</strong> {{ selectedBooking.user.email }}</p>
+            <p><strong>Teléfono:</strong> {{ selectedBooking.user.phone || 'No especificado' }}</p>
           </div>
           <div class="col-md-6">
             <h6><i class="fas fa-calendar"></i> Información de la Reserva</h6>
+            <p><strong>Fecha de Reserva:</strong> {{ selectedBooking.bookingDate | date:'dd/MM/yyyy HH:mm' }}</p>
             <p><strong>Check-in:</strong> {{ selectedBooking.checkInDate | date:'dd/MM/yyyy' }}</p>
             <p><strong>Check-out:</strong> {{ selectedBooking.checkOutDate | date:'dd/MM/yyyy' }}</p>
-            <p><strong>Huéspedes:</strong> {{ selectedBooking.guests }}</p>
-            <p><strong>Noches:</strong> {{ calculateNights(selectedBooking.checkInDate, selectedBooking.checkOutDate) }}</p>
+            <p><strong>Huéspedes:</strong> {{ selectedBooking.numGuests }}</p>
           </div>
         </div>
         
@@ -333,14 +528,11 @@
                 {{ getStatusText(selectedBooking.status) }}
               </span>
             </p>
-            <p><strong>Creada:</strong> {{ selectedBooking.createdAt | date:'dd/MM/yyyy HH:mm' }}</p>
-            <p><strong>Actualizada:</strong> {{ selectedBooking.updatedAt | date:'dd/MM/yyyy HH:mm' }}</p>
+            <p><strong>Creada:</strong> {{ selectedBooking.bookingDate | date:'dd/MM/yyyy HH:mm' }}</p>
           </div>
           <div class="col-md-6">
             <h6><i class="fas fa-dollar-sign"></i> Información Financiera</h6>
-            <p><strong>Total:</strong> ${{ selectedBooking.totalAmount | number:'1.2-2' }}</p>
-            <p><strong>Método de Pago:</strong> {{ selectedBooking.paymentMethod || 'No especificado' }}</p>
-            <p><strong>Estado de Pago:</strong> {{ selectedBooking.paymentStatus || 'No especificado' }}</p>
+            <p><strong>Total:</strong> ${{ selectedBooking.totalPrice | currency:'COP':'symbol':'1.0-0' }}</p>
           </div>
         </div>
         

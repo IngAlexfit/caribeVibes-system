@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
@@ -169,5 +169,69 @@ export class AdminService {
    */
   runSystemMaintenance(): Observable<any> {
     return this.http.post(`${this.API_URL}/maintenance/run`, {});
+  }
+
+  // =====================
+  // GESTIÓN DE RESERVAS 
+  // =====================
+
+  /**
+   * @method getAllBookings
+   * @description Obtiene todas las reservas para administradores con paginación
+   * @param {number} page - Número de página (opcional, por defecto 0)
+   * @param {number} size - Tamaño de página (opcional, por defecto 10)
+   * @param {string} sort - Campo de ordenamiento (opcional, por defecto 'bookingDate')
+   * @param {string} direction - Dirección de ordenamiento (opcional, por defecto 'desc')
+   * @returns {Observable<any>} Lista paginada de reservas
+   */
+  getAllBookings(page: number = 0, size: number = 10, sort: string = 'bookingDate', direction: string = 'desc'): Observable<any> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('sort', `${sort},${direction}`);
+    
+    return this.http.get(`${this.API_URL}/bookings`, { params });
+  }
+
+  /**
+   * @method getBookingById
+   * @description Obtiene una reserva específica por ID (solo para admin)
+   * @param {number} id - ID de la reserva
+   * @returns {Observable<any>} Detalles de la reserva
+   */
+  getBookingById(id: number): Observable<any> {
+    return this.http.get(`${this.API_URL}/bookings/${id}`);
+  }
+
+  /**
+   * @method getBookingStatistics
+   * @description Obtiene estadísticas de reservas por estado
+   * @returns {Observable<any>} Estadísticas de reservas
+   */
+  getBookingStatistics(): Observable<any> {
+    return this.http.get(`${this.API_URL}/bookings/statistics`);
+  }
+
+  /**
+   * @method updateBookingStatus
+   * @description Actualiza el estado de una reserva (solo para admin)
+   * @param {number} id - ID de la reserva
+   * @param {string} status - Nuevo estado
+   * @returns {Observable<any>} Resultado de la operación
+   */
+  updateBookingStatus(id: number, status: string): Observable<any> {
+    return this.http.put(`${this.API_URL}/bookings/${id}/status`, { status });
+  }
+
+  /**
+   * @method downloadBookingVoucher
+   * @description Descarga el voucher de una reserva específica
+   * @param {number} id - ID de la reserva
+   * @returns {Observable<Blob>} Archivo PDF del voucher
+   */
+  downloadBookingVoucher(id: number): Observable<Blob> {
+    return this.http.get(`${this.API_URL}/bookings/${id}/voucher`, {
+      responseType: 'blob'
+    });
   }
 }

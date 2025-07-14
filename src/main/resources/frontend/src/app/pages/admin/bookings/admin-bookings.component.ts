@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { BookingService } from '../../../core/services/booking.service';
+import { AdminService } from '../../../core/services/admin.service';
 import { BookingResponse, BookingStatus } from '../../../core/models/booking.model';
 import { PageResponse } from '../../../core/models/common.model';
 import Swal from 'sweetalert2';
@@ -118,33 +118,33 @@ export class AdminBookingsComponent implements OnInit, OnDestroy {
   /** @property {BookingResponse[]} filteredBookings - Lista de reservas filtradas */
   filteredBookings: BookingResponse[] = [];
 
-  /** @property {BookingStats|null} statistics - Estadísticas de reservas (alias para stats) */
-  get statistics(): BookingStats | null {
-    return this.stats;
-  }
-
-  /** @property {string} selectedStatus - Estado seleccionado para filtrar */
+  // Propiedades para filtros individuales (usadas en el template)
+  /** @property {string} selectedStatus - Estado seleccionado en el filtro */
   selectedStatus = '';
-
-  /** @property {string} dateFrom - Fecha desde para filtrar */
+  
+  /** @property {string} dateFrom - Fecha desde para filtro */
   dateFrom = '';
-
-  /** @property {string} dateTo - Fecha hasta para filtrar */
+  
+  /** @property {string} dateTo - Fecha hasta para filtro */
   dateTo = '';
-
+  
   /** @property {string} searchTerm - Término de búsqueda */
   searchTerm = '';
 
-  /** @property {boolean} loading - Alias para isLoading */
-  get loading(): boolean {
-    return this.isLoading;
-  }
+  /** @property {boolean} loading - Estado de carga general */
+  loading = false;
+
+  /** @property {any} statistics - Estadísticas para mostrar en dashboard */
+  statistics: any = null;
+
+  /** @property {Math} Math - Referencia a Math para usar en el template */
+  Math = Math;
 
   /**
    * @constructor
    * @param {BookingService} bookingService - Servicio de reservas
    */
-  constructor(private bookingService: BookingService) {}
+  constructor(private adminService: AdminService) {}
 
   /**
    * @method ngOnInit
@@ -152,7 +152,6 @@ export class AdminBookingsComponent implements OnInit, OnDestroy {
    */
   ngOnInit(): void {
     this.loadBookings();
-    this.calculateStats();
   }
 
   /**
@@ -172,22 +171,8 @@ export class AdminBookingsComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.errorMessage = '';
 
-    let request;
-
-    if (this.filters.status !== 'all') {
-      request = this.bookingService.getBookingsByStatus(
-        this.filters.status as BookingStatus,
-        this.currentPage,
-        this.pageSize
-      );
-    } else {
-      request = this.bookingService.getAllBookings(
-        this.currentPage,
-        this.pageSize,
-        this.sortBy,
-        this.sortDir
-      );
-    }
+    // Usar los parámetros de paginación
+    const request = this.adminService.getAllBookings(this.currentPage, this.pageSize, this.sortBy, this.sortDir);
 
     request.pipe(takeUntil(this.destroy$)).subscribe({
       next: (response: PageResponse<BookingResponse>) => {
@@ -195,6 +180,7 @@ export class AdminBookingsComponent implements OnInit, OnDestroy {
         this.bookings = response.content;
         this.filteredBookings = [...this.bookings]; // Inicializar filteredBookings
         this.updateFilteredBookings(); // Aplicar filtros
+        this.calculateStats(); // Calcular estadísticas después de cargar los datos
         this.isLoading = false;
       },
       error: (error: any) => {
@@ -210,17 +196,30 @@ export class AdminBookingsComponent implements OnInit, OnDestroy {
    * @description Calcula las estadísticas de reservas
    */
   calculateStats(): void {
+    console.log('Calculando estadísticas para', this.bookings.length, 'reservas');
+    
     // Esta sería una implementación real conectada al backend
     // Por ahora, calculamos estadísticas básicas desde los datos disponibles
     this.stats = {
       total: this.bookings.length,
-      confirmed: this.bookings.filter(b => b.status === BookingStatus.CONFIRMED).length,
-      pending: this.bookings.filter(b => b.status === BookingStatus.PENDING).length,
-      cancelled: this.bookings.filter(b => b.status === BookingStatus.CANCELLED).length,
-      completed: this.bookings.filter(b => b.status === BookingStatus.COMPLETED).length,
+      confirmed: this.bookings.filter(b => b.status === 'CONFIRMED').length,
+      pending: this.bookings.filter(b => b.status === 'PENDING').length,
+      cancelled: this.bookings.filter(b => b.status === 'CANCELLED').length,
+      completed: this.bookings.filter(b => b.status === 'COMPLETED').length,
       totalRevenue: this.bookings.reduce((sum, b) => sum + (b.totalPrice || 0), 0),
       monthlyRevenue: this.calculateMonthlyRevenue()
     };
+
+    // Actualizar statistics para el template
+    this.statistics = {
+      total: this.stats.total,
+      confirmed: this.stats.confirmed,
+      pending: this.stats.pending,
+      cancelled: this.stats.cancelled,
+      completed: this.stats.completed
+    };
+    
+    console.log('Estadísticas calculadas:', this.statistics);
   }
 
   /**
@@ -254,11 +253,11 @@ export class AdminBookingsComponent implements OnInit, OnDestroy {
   /**
    * @method onPageSizeChange
    * @description Maneja el cambio de tamaño de página
-   * @param {number} size - Nuevo tamaño
+   * @param {number} newSize - Nuevo tamaño de página
    */
-  onPageSizeChange(size: number): void {
-    this.pageSize = size;
-    this.currentPage = 0;
+  onPageSizeChange(newSize: number): void {
+    this.pageSize = newSize;
+    this.currentPage = 0; // Resetear a la primera página
     this.loadBookings();
   }
 
@@ -326,19 +325,19 @@ export class AdminBookingsComponent implements OnInit, OnDestroy {
       if (result.isConfirmed) {
         this.isLoadingAction = true;
 
-        this.bookingService.confirmBooking(bookingId)
+        this.adminService.updateBookingStatus(bookingId, 'CONFIRMED')
           .pipe(takeUntil(this.destroy$))
           .subscribe({
             next: () => {
               // Actualizar el estado en la lista
               const bookingIndex = this.bookings.findIndex(b => b.id === bookingId);
               if (bookingIndex !== -1) {
-                this.bookings[bookingIndex].status = BookingStatus.CONFIRMED;
+                this.bookings[bookingIndex].status = 'CONFIRMED' as BookingStatus;
               }
 
               // Actualizar reserva seleccionada
               if (this.selectedBooking && this.selectedBooking.id === bookingId) {
-                this.selectedBooking.status = BookingStatus.CONFIRMED;
+                this.selectedBooking.status = 'CONFIRMED' as BookingStatus;
               }
 
               this.isLoadingAction = false;
@@ -382,19 +381,19 @@ export class AdminBookingsComponent implements OnInit, OnDestroy {
       if (result.isConfirmed) {
         this.isLoadingAction = true;
 
-        this.bookingService.cancelBooking(bookingId)
+        this.adminService.updateBookingStatus(bookingId, 'CANCELLED')
           .pipe(takeUntil(this.destroy$))
           .subscribe({
             next: () => {
               // Actualizar el estado en la lista
               const bookingIndex = this.bookings.findIndex(b => b.id === bookingId);
               if (bookingIndex !== -1) {
-                this.bookings[bookingIndex].status = BookingStatus.CANCELLED;
+                this.bookings[bookingIndex].status = 'CANCELLED' as BookingStatus;
               }
 
               // Actualizar reserva seleccionada
               if (this.selectedBooking && this.selectedBooking.id === bookingId) {
-                this.selectedBooking.status = BookingStatus.CANCELLED;
+                this.selectedBooking.status = 'CANCELLED' as BookingStatus;
               }
 
               this.isLoadingAction = false;
@@ -438,19 +437,19 @@ export class AdminBookingsComponent implements OnInit, OnDestroy {
       if (result.isConfirmed) {
         this.isLoadingAction = true;
 
-        this.bookingService.completeBooking(bookingId)
+        this.adminService.updateBookingStatus(bookingId, 'COMPLETED')
           .pipe(takeUntil(this.destroy$))
           .subscribe({
             next: () => {
               // Actualizar el estado en la lista
               const bookingIndex = this.bookings.findIndex(b => b.id === bookingId);
               if (bookingIndex !== -1) {
-                this.bookings[bookingIndex].status = BookingStatus.COMPLETED;
+                this.bookings[bookingIndex].status = 'COMPLETED' as BookingStatus;
               }
 
               // Actualizar reserva seleccionada
               if (this.selectedBooking && this.selectedBooking.id === bookingId) {
-                this.selectedBooking.status = BookingStatus.COMPLETED;
+                this.selectedBooking.status = 'COMPLETED' as BookingStatus;
               }
 
               this.isLoadingAction = false;
@@ -482,7 +481,7 @@ export class AdminBookingsComponent implements OnInit, OnDestroy {
    * @param {number} bookingId - ID de la reserva
    */
   downloadVoucher(bookingId: number): void {
-    this.bookingService.downloadVoucher(bookingId)
+    this.adminService.downloadBookingVoucher(bookingId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (blob: Blob) => {
@@ -494,6 +493,14 @@ export class AdminBookingsComponent implements OnInit, OnDestroy {
           link.click();
           document.body.removeChild(link);
           window.URL.revokeObjectURL(url);
+
+          Swal.fire({
+            title: 'Éxito',
+            text: 'Voucher descargado exitosamente.',
+            icon: 'success',
+            timer: 2000,
+            showConfirmButton: false
+          });
         },
         error: (error) => {
           console.error('Error descargando voucher:', error);
@@ -514,7 +521,7 @@ export class AdminBookingsComponent implements OnInit, OnDestroy {
   exportBookings(format: string = 'xlsx'): void {
     this.isLoadingAction = true;
     
-    this.bookingService.exportBookings(format)
+    this.adminService.exportData(format, 'bookings')
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (blob: Blob) => {
@@ -568,6 +575,9 @@ export class AdminBookingsComponent implements OnInit, OnDestroy {
    * @param {number} page - Número de página
    */
   goToPage(page: number): void {
+    if (page < 0 || !this.bookingsPage || page >= this.bookingsPage.totalPages) {
+      return;
+    }
     this.currentPage = page;
     this.loadBookings();
   }
@@ -581,7 +591,7 @@ export class AdminBookingsComponent implements OnInit, OnDestroy {
     if (!this.bookingsPage) return [];
     
     const totalPages = this.bookingsPage.totalPages;
-    const currentPage = this.currentPage;
+    const currentPage = this.bookingsPage.number;
     const pages: number[] = [];
     
     // Mostrar máximo 5 páginas
@@ -622,21 +632,57 @@ export class AdminBookingsComponent implements OnInit, OnDestroy {
    */
   viewBookingDetails(booking: BookingResponse): void {
     this.selectedBooking = booking;
-    // Aquí podrías abrir un modal o navegar a una página de detalles
+    // Mostrar modal con detalles
+    const modalElement = document.getElementById('bookingDetailsModal');
+    if (modalElement) {
+      // Si usas Bootstrap, puedes usar esto:
+      // const modal = new (window as any).bootstrap.Modal(modalElement);
+      // modal.show();
+      
+      // Por ahora mostramos un SweetAlert con los detalles
+      Swal.fire({
+        title: `Reserva #${booking.id}`,
+        html: `
+          <div class="text-left">
+            <p><strong>Cliente:</strong> ${booking.user.firstName} ${booking.user.lastName}</p>
+            <p><strong>Email:</strong> ${booking.user.email}</p>
+            <p><strong>Hotel:</strong> ${booking.hotel.name}</p>
+            <p><strong>Tipo habitación:</strong> ${booking.roomType.name}</p>
+            <p><strong>Check-in:</strong> ${new Date(booking.checkInDate).toLocaleDateString('es-ES')}</p>
+            <p><strong>Check-out:</strong> ${new Date(booking.checkOutDate).toLocaleDateString('es-ES')}</p>
+            <p><strong>Huéspedes:</strong> ${booking.numGuests}</p>
+            <p><strong>Habitaciones:</strong> ${booking.numRooms}</p>
+            <p><strong>Total:</strong> $${booking.totalPrice.toLocaleString('es-CO')}</p>
+            <p><strong>Estado:</strong> ${this.getStatusText(booking.status)}</p>
+            <p><strong>Código:</strong> ${booking.confirmationCode}</p>
+            ${booking.specialRequests ? `<p><strong>Solicitudes especiales:</strong> ${booking.specialRequests}</p>` : ''}
+          </div>
+        `,
+        width: '600px',
+        confirmButtonText: 'Cerrar'
+      });
+    }
   }
 
   /**
-   * @method calculateNights
-   * @description Calcula el número de noches de una reserva
-   * @param {string} checkIn - Fecha de entrada
-   * @param {string} checkOut - Fecha de salida
-   * @returns {number} Número de noches
+   * @method getStatusText
+   * @description Obtiene el texto en español para un estado de reserva
+   * @param {string} status - Estado de la reserva
+   * @returns {string} Texto del estado en español
    */
-  calculateNights(checkIn: string, checkOut: string): number {
-    const checkInDate = new Date(checkIn);
-    const checkOutDate = new Date(checkOut);
-    const timeDiff = checkOutDate.getTime() - checkInDate.getTime();
-    return Math.ceil(timeDiff / (1000 * 3600 * 24));
+  getStatusText(status: string): string {
+    switch (status) {
+      case 'PENDING':
+        return 'Pendiente';
+      case 'CONFIRMED':
+        return 'Confirmada';
+      case 'COMPLETED':
+        return 'Completada';
+      case 'CANCELLED':
+        return 'Cancelada';
+      default:
+        return status;
+    }
   }
 
   /**
@@ -648,11 +694,13 @@ export class AdminBookingsComponent implements OnInit, OnDestroy {
       // Filtro por término de búsqueda
       if (this.searchTerm) {
         const searchTerm = this.searchTerm.toLowerCase();
+        const fullName = `${booking.user?.firstName || ''} ${booking.user?.lastName || ''}`.trim();
         const matchesSearch = 
-          (booking.customerName || booking.user?.name || '').toLowerCase().includes(searchTerm) ||
-          (booking.customerEmail || booking.user?.email || '').toLowerCase().includes(searchTerm) ||
+          fullName.toLowerCase().includes(searchTerm) ||
+          (booking.user?.email || '').toLowerCase().includes(searchTerm) ||
           booking.id.toString().includes(searchTerm) ||
-          (booking.hotel?.name || '').toLowerCase().includes(searchTerm);
+          (booking.hotel?.name || '').toLowerCase().includes(searchTerm) ||
+          (booking.confirmationCode || '').toLowerCase().includes(searchTerm);
         
         if (!matchesSearch) return false;
       }
@@ -672,6 +720,7 @@ export class AdminBookingsComponent implements OnInit, OnDestroy {
       if (this.dateTo) {
         const bookingDate = new Date(booking.bookingDate);
         const toDate = new Date(this.dateTo);
+        toDate.setHours(23, 59, 59, 999); // Final del día
         if (bookingDate > toDate) return false;
       }
 
@@ -680,47 +729,16 @@ export class AdminBookingsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * @method onSearchTermChange
-   * @description Maneja el cambio en el término de búsqueda
+   * @method calculateNights
+   * @description Calcula el número de noches entre dos fechas
+   * @param {string} checkIn - Fecha de entrada
+   * @param {string} checkOut - Fecha de salida
+   * @returns {number} Número de noches
    */
-  onSearchTermChange(): void {
-    this.updateFilteredBookings();
-  }
-
-  /**
-   * @method onStatusFilterChange
-   * @description Maneja el cambio en el filtro de estado
-   */
-  onStatusFilterChange(): void {
-    this.updateFilteredBookings();
-  }
-
-  /**
-   * @method onDateFilterChange
-   * @description Maneja el cambio en los filtros de fecha
-   */
-  onDateFilterChange(): void {
-    this.updateFilteredBookings();
-  }
-
-  /**
-   * @method getStatusText
-   * @description Obtiene el texto en español para un estado de reserva
-   * @param {BookingStatus} status - Estado de la reserva
-   * @returns {string} Texto en español del estado
-   */
-  getStatusText(status: BookingStatus): string {
-    switch (status) {
-      case BookingStatus.PENDING:
-        return 'Pendiente';
-      case BookingStatus.CONFIRMED:
-        return 'Confirmada';
-      case BookingStatus.CANCELLED:
-        return 'Cancelada';
-      case BookingStatus.COMPLETED:
-        return 'Completada';
-      default:
-        return 'Desconocido';
-    }
+  calculateNights(checkIn: string, checkOut: string): number {
+    const startDate = new Date(checkIn);
+    const endDate = new Date(checkOut);
+    const diffTime = endDate.getTime() - startDate.getTime();
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   }
 }
