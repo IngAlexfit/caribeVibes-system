@@ -2,13 +2,10 @@ package org.project.caribevibes.controller;
 
 import org.project.caribevibes.dto.response.BookingResponseDTO;
 import org.project.caribevibes.entity.booking.Booking;
-import org.project.caribevibes.entity.user.User;
-import org.project.caribevibes.exception.ResourceNotFoundException;
 import org.project.caribevibes.service.contact.ContactService;
 import org.project.caribevibes.service.booking.BookingService;
 import org.project.caribevibes.service.hotel.HotelService;
 import org.project.caribevibes.service.destination.DestinationService;
-import org.project.caribevibes.service.auth.AuthService;
 import org.project.caribevibes.service.pdf.PdfService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,13 +14,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Controlador para operaciones de administración del sistema.
@@ -53,9 +52,6 @@ public class AdminController {
 
     @Autowired
     private DestinationService destinationService;
-
-    @Autowired
-    private AuthService authService;
 
     @Autowired
     private PdfService pdfService;
@@ -231,25 +227,17 @@ public class AdminController {
      * Actualiza el estado de una reserva (solo para administradores).
      * 
      * @param id ID de la reserva
-     * @param statusRequest Objeto con el nuevo estado de la reserva
+     * @param status Nuevo estado de la reserva
      * @return ResponseEntity con el resultado de la operación
      */
     @PutMapping("/bookings/{id}/status")
     public ResponseEntity<Map<String, String>> updateBookingStatus(
             @PathVariable Long id,
-            @RequestBody Map<String, String> statusRequest) {
+            @RequestParam String status) {
         
-        String status = statusRequest.get("status");
         logger.debug("Admin actualizando estado de reserva {} a: {}", id, status);
         
         try {
-            if (status == null || status.trim().isEmpty()) {
-                Map<String, String> errorResponse = new HashMap<>();
-                errorResponse.put("error", "Estado requerido");
-                errorResponse.put("message", "El campo 'status' es obligatorio");
-                return ResponseEntity.badRequest().body(errorResponse);
-            }
-            
             bookingService.updateBookingStatusByAdmin(id, status);
             
             Map<String, String> response = new HashMap<>();
@@ -270,40 +258,68 @@ public class AdminController {
     }
 
     /**
-     * Descarga el voucher de una reserva específica (solo para administradores).
+     * Endpoint temporal para completar una reserva (solo para pruebas).
+     * 
+     * @param bookingId ID de la reserva a completar
+     * @return ResponseEntity con el resultado
+     */
+    @PostMapping("/complete-booking/{bookingId}")
+    public ResponseEntity<Map<String, Object>> completeBooking(@PathVariable Long bookingId) {
+        logger.debug("Completando reserva ID: {}", bookingId);
+        
+        try {
+            bookingService.completeBooking(bookingId);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Reserva completada exitosamente");
+            response.put("bookingId", bookingId);
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("Error al completar reserva ID {}: {}", bookingId, e.getMessage(), e);
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Error interno del servidor");
+            errorResponse.put("message", "No se pudo completar la reserva: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(errorResponse);
+        }
+    }
+
+    /**
+     * Descarga el voucher PDF de una reserva específica
      * 
      * @param id ID de la reserva
      * @return ResponseEntity con el archivo PDF del voucher
      */
     @GetMapping("/bookings/{id}/voucher")
     public ResponseEntity<byte[]> downloadBookingVoucher(@PathVariable Long id) {
-        logger.debug("Admin descargando voucher de reserva: {}", id);
+        logger.debug("Admin descargando voucher para reserva ID: {}", id);
         
         try {
-            // Obtener información del usuario autenticado (admin)
-            String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-            User currentUser = authService.findUserByEmail(userEmail)
-                    .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
-            
             // Obtener la reserva
-            Booking booking = bookingService.findBookingById(id)
-                    .orElseThrow(() -> new ResourceNotFoundException("Reserva", "id", id));
-
-            // Como es admin, no necesitamos verificar ownership - puede acceder a cualquier reserva
-            logger.info("Admin {} generando voucher para reserva ID: {}", currentUser.getEmail(), id);
+            Optional<Booking> bookingOpt = bookingService.findBookingById(id);
+            if (bookingOpt.isEmpty()) {
+                logger.warn("Reserva con ID {} no encontrada", id);
+                return ResponseEntity.notFound().build();
+            }
             
-            // Generar el voucher PDF usando el mismo servicio que el endpoint de cliente
-            byte[] pdfBytes = pdfService.generateBookingVoucher(booking);
+            Booking booking = bookingOpt.get();
             
-            // Configurar headers para la descarga
+            // Generar el PDF del voucher
+            byte[] pdfContent = pdfService.generateBookingVoucher(booking);
+            
+            // Configurar headers para descarga
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment", 
+                String.format("voucher-reserva-%d.pdf", id));
+            headers.setContentLength(pdfContent.length);
+            
+            logger.info("Voucher generado exitosamente para reserva ID: {}", id);
             return ResponseEntity.ok()
-                    .header("Content-Type", "application/pdf")
-                    .header("Content-Disposition", "attachment; filename=\"voucher-reserva-" + id + ".pdf\"")
-                    .body(pdfBytes);
-            
-        } catch (ResourceNotFoundException e) {
-            logger.error("Reserva no encontrada: {}", id);
-            return ResponseEntity.notFound().build();
+                    .headers(headers)
+                    .body(pdfContent);
+                    
         } catch (Exception e) {
             logger.error("Error al generar voucher para reserva {}: {}", id, e.getMessage(), e);
             return ResponseEntity.internalServerError().build();

@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
+import { CommonModule } from '@angular/common';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
@@ -32,6 +33,9 @@ import { AdminDashboardComponent } from './pages/admin/dashboard/admin-dashboard
 import { AdminContactsComponent } from './pages/admin/contacts/admin-contacts.component';
 import { AdminBookingsComponent } from './pages/admin/bookings/admin-bookings.component';
 
+// Feature Modules
+import { HotelReviewsModule } from './features/hotel-reviews/hotel-reviews.module';
+
 /**
  * @class AppModule
  * @description Módulo principal de la aplicación Angular.
@@ -60,11 +64,13 @@ import { AdminBookingsComponent } from './pages/admin/bookings/admin-bookings.co
   ],
   imports: [
     BrowserModule,
+    CommonModule,
     BrowserAnimationsModule,
     HttpClientModule,
     ReactiveFormsModule,
     FormsModule,
-    AppRoutingModule
+    AppRoutingModule,
+    HotelReviewsModule
   ],
   providers: [
     {

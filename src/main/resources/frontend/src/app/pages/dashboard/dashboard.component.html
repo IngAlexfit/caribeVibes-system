@@ -176,6 +176,38 @@
         </div>
       </div>
 
+      <!-- User Reviews Section -->
+      <div class="content-section" *ngIf="userReviews && userReviews.length > 0">
+        <div class="section-header">
+          <h2>
+            <i class="fas fa-star me-2"></i>
+            Mis Reseñas
+          </h2>
+          <a routerLink="/bookings" class="view-all">Ver todas</a>
+        </div>
+        
+        <div class="reviews-grid">
+          <div *ngFor="let review of userReviews.slice(0, 3)" class="review-card">
+            <div class="review-header">
+              <h6 class="hotel-name">{{ review.hotelName }}</h6>
+              <div class="review-rating">
+                <i *ngFor="let star of getStarArray(review.rating)" 
+                   class="fas fa-star text-warning"></i>
+                <span class="rating-text">{{ review.rating }}/5</span>
+              </div>
+            </div>
+            <div class="review-content">
+              <h6 class="review-title">{{ review.title }}</h6>
+              <p class="review-comment">{{ review.comment | slice:0:100 }}{{ review.comment.length > 100 ? '...' : '' }}</p>
+              <small class="review-date">
+                <i class="far fa-calendar me-1"></i>
+                {{ review.createdAt | date:'mediumDate' }}
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Recommended Hotels -->
       <div class="content-section">
         <div class="section-header">

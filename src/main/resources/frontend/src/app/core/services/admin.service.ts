@@ -220,7 +220,8 @@ export class AdminService {
    * @returns {Observable<any>} Resultado de la operación
    */
   updateBookingStatus(id: number, status: string): Observable<any> {
-    return this.http.put(`${this.API_URL}/bookings/${id}/status`, { status });
+    const params = new HttpParams().set('status', status);
+    return this.http.put(`${this.API_URL}/bookings/${id}/status`, null, { params });
   }
 
   /**

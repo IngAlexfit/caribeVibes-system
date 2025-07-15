@@ -532,6 +532,16 @@
         </aside>
 
       </div>
+      
+      <!-- Sección de Reseñas -->
+      <div class="reviews-section">
+        <app-hotel-reviews 
+          [hotelId]="selectedHotel.id"
+          [hotelName]="selectedHotel.name"
+          [showCreateButton]="true">
+        </app-hotel-reviews>
+      </div>
+      
     </div>
 
   </div>

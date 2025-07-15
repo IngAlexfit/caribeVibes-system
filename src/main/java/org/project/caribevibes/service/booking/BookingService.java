@@ -586,22 +586,16 @@ public class BookingService {
     public void updateBookingStatusByAdmin(Long id, String status) {
         logger.debug("Admin actualizando estado de reserva {} a: {}", id, status);
         
-        // Verificar que la reserva existe
-        if (!bookingRepository.existsById(id)) {
-            throw new RuntimeException("Reserva no encontrada con ID: " + id);
-        }
+        Booking booking = bookingRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Reserva no encontrada con ID: " + id));
         
         try {
             Booking.BookingStatus bookingStatus = Booking.BookingStatus.valueOf(status.toUpperCase());
             
-            // Usar actualización directa para evitar validaciones de entidad
-            int updatedRows = bookingRepository.updateBookingStatus(id, bookingStatus);
+            // Usar EntityManager con validación deshabilitada para operaciones de admin
+            bookingRepository.updateBookingStatusByAdmin(id, bookingStatus);
             
-            if (updatedRows > 0) {
-                logger.info("Estado de reserva {} actualizado a {} por administrador", id, status);
-            } else {
-                throw new RuntimeException("No se pudo actualizar el estado de la reserva");
-            }
+            logger.info("Estado de reserva {} actualizado a {} por administrador", id, status);
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("Estado de reserva inválido: " + status);
         }

@@ -4,6 +4,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { BookingService } from '../../core/services/booking.service';
 import { DestinationService } from '../../core/services/destination.service';
 import { HotelService } from '../../core/services/hotel.service';
+import { HotelReviewService, HotelReview } from '../../core/services/hotel-review.service';
 import { User } from '../../core/models/user.model';
 import { BookingResponse } from '../../core/models/booking.model';
 import { DestinationResponse } from '../../core/models/destination.model';
@@ -51,6 +52,9 @@ export class DashboardComponent implements OnInit {
   /** @property {HotelResponse[]} recommendedHotels - Hoteles recomendados para el usuario */
   recommendedHotels: HotelResponse[] = [];
   
+  /** @property {HotelReview[]} userReviews - Reseñas recientes del usuario */
+  userReviews: HotelReview[] = [];
+  
   /** @property {DashboardStats} stats - Estadísticas de reservas del usuario */
   stats: DashboardStats = {
     totalBookings: 0,
@@ -68,6 +72,7 @@ export class DashboardComponent implements OnInit {
    * @param {BookingService} bookingService - Servicio de reservas
    * @param {DestinationService} destinationService - Servicio de destinos
    * @param {HotelService} hotelService - Servicio de hoteles
+   * @param {HotelReviewService} hotelReviewService - Servicio de reseñas de hoteles
    * @param {Router} router - Servicio de navegación
    */
   constructor(
@@ -75,6 +80,7 @@ export class DashboardComponent implements OnInit {
     private bookingService: BookingService,
     private destinationService: DestinationService,
     private hotelService: HotelService,
+    private hotelReviewService: HotelReviewService,
     private router: Router
   ) {}
 
@@ -160,6 +166,7 @@ export class DashboardComponent implements OnInit {
         this.processBookingsData(data.bookings.content);
         this.favoriteDestinations = data.destinations.content.slice(0, 3);
         this.recommendedHotels = data.hotels.content.slice(0, 3);
+        this.loadUserReviews();
         this.isLoading = false;
       },
       error: (error) => {
@@ -297,5 +304,32 @@ export class DashboardComponent implements OnInit {
    */
   navigateToHotel(hotelId: number): void {
     this.router.navigate(['/hotels', hotelId]);
+  }
+
+  /**
+   * @method getStarArray
+   * @description Convierte una calificación numérica en un array para mostrar estrellas
+   * @param {number} rating - Calificación del 1 al 5
+   * @returns {number[]} Array con números del 1 al 5 para el bucle de estrellas
+   */
+  getStarArray(rating: number): number[] {
+    return [1, 2, 3, 4, 5];
+  }
+
+  /**
+   * @method loadUserReviews
+   * @description Carga las reseñas del usuario actual
+   */
+  loadUserReviews(): void {
+    if (this.currentUser?.id) {
+      this.hotelReviewService.getReviewsByUser(this.currentUser.id).subscribe({
+        next: (reviews: HotelReview[]) => {
+          this.userReviews = reviews;
+        },
+        error: (error: any) => {
+          console.error('Error loading user reviews:', error);
+        }
+      });
+    }
   }
 }

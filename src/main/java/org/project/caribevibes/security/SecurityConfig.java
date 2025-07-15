@@ -76,6 +76,11 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/contact").permitAll() // Solo POST para crear contacto
                 .requestMatchers("/api/contact/health").permitAll() // Health check público
                 
+                // Endpoints públicos de reseñas de hoteles (solo lectura)
+                .requestMatchers(HttpMethod.GET, "/api/hotel-reviews/hotel/**").permitAll() // Ver reseñas de hoteles
+                .requestMatchers(HttpMethod.GET, "/api/hotel-reviews/search").permitAll() // Buscar reseñas
+                .requestMatchers(HttpMethod.GET, "/api/hotel-reviews/user/**").permitAll() // Ver reseñas públicas de usuarios
+                
                 // Endpoints de documentación (Swagger/OpenAPI)
                 .requestMatchers(
                     "/swagger-ui.html",
@@ -110,6 +115,13 @@ public class SecurityConfig {
                 // Endpoints protegidos para usuarios autenticados
                 .requestMatchers("/api/bookings/**").hasRole("CLIENT")
                 .requestMatchers("/api/users/profile/**").hasRole("CLIENT")
+                
+                // Endpoints de reseñas que requieren autenticación
+                .requestMatchers(HttpMethod.POST, "/api/hotel-reviews").hasAnyRole("CLIENT", "USER")
+                .requestMatchers(HttpMethod.PUT, "/api/hotel-reviews/**").hasAnyRole("CLIENT", "USER")
+                .requestMatchers(HttpMethod.DELETE, "/api/hotel-reviews/**").hasAnyRole("CLIENT", "USER")
+                .requestMatchers("/api/hotel-reviews/my-reviews").hasAnyRole("CLIENT", "USER")
+                .requestMatchers("/api/hotel-reviews/reviewable-bookings").hasAnyRole("CLIENT", "USER")
                 
                 // Endpoints de contacto (solo GET, PUT, DELETE requieren ADMIN)
                 .requestMatchers(HttpMethod.GET, "/api/contact/**").hasRole("ADMIN")

@@ -353,5 +353,41 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     @Modifying
     @Query("UPDATE Booking b SET b.status = :status WHERE b.id = :id")
     int updateBookingStatus(@Param("id") Long id, @Param("status") Booking.BookingStatus status);
+    
+    /**
+     * Encuentra reservas completadas que no han sido reseñadas por un usuario.
+     * 
+     * @param userId ID del usuario
+     * @return Lista de reservas que pueden ser reseñadas
+     */
+    @Query("SELECT b FROM Booking b " +
+           "WHERE b.user.id = :userId " +
+           "AND (b.status = org.project.caribevibes.entity.booking.Booking$BookingStatus.COMPLETED " +
+           "     OR (b.status = org.project.caribevibes.entity.booking.Booking$BookingStatus.CHECKED_OUT " +
+           "         AND b.checkOutDate < CURRENT_DATE)) " +
+           "AND b.id NOT IN (SELECT hr.booking.id FROM HotelReview hr WHERE hr.user.id = :userId) " +
+           "ORDER BY b.checkOutDate DESC")
+    List<Booking> findCompletedBookingsWithoutReviews(@Param("userId") Long userId);
 
+    /**
+     * Encuentra reservas por usuario, estado y fecha de check-out anterior a una fecha específica
+     * 
+     * @param userId ID del usuario
+     * @param status Estado de la reserva
+     * @param date Fecha límite de check-out
+     * @return Lista de reservas que cumplen los criterios
+     */
+    List<Booking> findByUserIdAndStatusAndCheckOutDateBefore(Long userId, Booking.BookingStatus status, LocalDate date);
+
+    /**
+     * Actualiza el estado de una reserva específica sin aplicar validaciones de entidad.
+     * Este método está diseñado para uso administrativo donde se necesita cambiar
+     * el estado de reservas sin que fallen las validaciones de fechas.
+     * 
+     * @param id ID de la reserva a actualizar
+     * @param status Nuevo estado de la reserva
+     */
+    @Modifying
+    @Query("UPDATE Booking b SET b.status = :status WHERE b.id = :id")
+    void updateBookingStatusByAdmin(@Param("id") Long id, @Param("status") Booking.BookingStatus status);
 }

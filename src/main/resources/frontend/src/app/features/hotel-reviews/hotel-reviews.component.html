@@ -1,0 +1,364 @@
+<div class="hotel-reviews-container">
+  <!-- Mensajes de estado -->
+  <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="fas fa-check-circle me-2"></i>
+    {{ successMessage }}
+    <button type="button" class="btn-close" (click)="clearMessages()"></button>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="fas fa-exclamation-circle me-2"></i>
+    {{ errorMessage }}
+    <button type="button" class="btn-close" (click)="clearMessages()"></button>
+  </div>
+
+  <!-- Estadísticas de reseñas -->
+  <div class="reviews-stats-section" *ngIf="reviewStats && !isLoadingStats">
+    <div class="row">
+      <div class="col-md-4">
+        <div class="rating-overview">
+          <div class="average-rating">
+            <span class="rating-number">{{ reviewStats.averageRating | number:'1.1-1' }}</span>
+            <div class="stars-display">
+              <i *ngFor="let star of getFilledStars(reviewStats.averageRating)" 
+                 class="fas fa-star text-warning"></i>
+              <i *ngFor="let star of getEmptyStars(reviewStats.averageRating)" 
+                 class="far fa-star text-muted"></i>
+            </div>
+            <small class="text-muted">{{ reviewStats.totalReviews }} reseña{{ reviewStats.totalReviews !== 1 ? 's' : '' }}</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-8">
+        <div class="rating-distribution">
+          <div *ngFor="let rating of [5, 4, 3, 2, 1]" class="rating-bar">
+            <span class="rating-label">{{ rating }}</span>
+            <i class="fas fa-star text-warning"></i>
+            <div class="progress">
+              <div class="progress-bar bg-warning" 
+                   [style.width.%]="getRatingPercentage(rating)"
+                   [attr.aria-valuenow]="getRatingPercentage(rating)"
+                   aria-valuemin="0" 
+                   aria-valuemax="100">
+              </div>
+            </div>
+            <span class="rating-count">({{ getRatingDistributionCount(rating) }})</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cargando estadísticas -->
+  <div *ngIf="isLoadingStats" class="text-center py-3">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando estadísticas...</span>
+    </div>
+  </div>
+
+  <!-- Header con botón para crear reseña -->
+  <div class="reviews-header d-flex justify-content-between align-items-center">
+    <h4 class="mb-0">
+      <i class="fas fa-comments me-2"></i>
+      Reseñas{{ hotelName ? ' de ' + hotelName : '' }}
+    </h4>
+    <button *ngIf="showCreateButton && currentUser && reviewableBookings.length > 0" 
+            class="btn btn-primary" 
+            (click)="openCreateModal()">
+      <i class="fas fa-plus me-2"></i>
+      Escribir reseña
+    </button>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters-section">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <select class="form-select" [(ngModel)]="ratingFilter" (change)="applyFilters()">
+          <option value="0">Todas las calificaciones</option>
+          <option value="5">5 estrellas</option>
+          <option value="4">4 estrellas</option>
+          <option value="3">3 estrellas</option>
+          <option value="2">2 estrellas</option>
+          <option value="1">1 estrella</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <select class="form-select" [(ngModel)]="sortBy" (change)="applyFilters()">
+          <option value="newest">Más recientes</option>
+          <option value="oldest">Más antiguos</option>
+          <option value="highest">Calificación más alta</option>
+          <option value="lowest">Calificación más baja</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lista de reseñas -->
+  <div class="reviews-list">
+    <!-- Cargando -->
+    <div *ngIf="isLoading" class="text-center py-4">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando reseñas...</span>
+      </div>
+    </div>
+
+    <!-- Reseñas -->
+    <div *ngIf="!isLoading && reviews.length > 0" class="reviews-container">
+      <div *ngFor="let review of reviews" class="review-card">
+        <div class="review-header d-flex justify-content-between align-items-start">
+          <div class="reviewer-info">
+            <h6 class="reviewer-name mb-1">
+              {{ review.userFirstName && review.userLastInitial ? review.userFirstName + ' ' + review.userLastInitial : 'Usuario anónimo' }}
+            </h6>
+            <div class="review-rating">
+              <i *ngFor="let star of getFilledStars(review.rating)" 
+                 class="fas fa-star text-warning"></i>
+              <i *ngFor="let star of getEmptyStars(review.rating)" 
+                 class="far fa-star text-muted"></i>
+              <span class="ms-2 text-muted">{{ review.rating }}/5</span>
+            </div>
+            <small class="text-muted">
+              <i class="far fa-calendar me-1"></i>
+              {{ review.createdAt | date:'medium' }}
+              <span *ngIf="review.checkInDate && review.checkOutDate" class="ms-2">
+                • Estadía: {{ review.checkInDate | date:'shortDate' }} - {{ review.checkOutDate | date:'shortDate' }}
+              </span>
+            </small>
+          </div>
+          <div class="review-actions" *ngIf="canEditReview(review) || canDeleteReview(review)">
+            <button class="btn btn-sm btn-outline-primary me-2" 
+                    (click)="openEditModal(review)"
+                    [disabled]="isSubmitting"
+                    *ngIf="canEditReview(review)">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-danger" 
+                    (click)="deleteReview(review)"
+                    [disabled]="isSubmitting"
+                    *ngIf="canDeleteReview(review)">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+        <div class="review-content">
+          <h6 class="review-title">{{ review.title }}</h6>
+          <p class="review-comment">{{ review.comment }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sin reseñas -->
+    <div *ngIf="!isLoading && reviews.length === 0" class="no-reviews text-center py-5">
+      <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+      <h5>No hay reseñas aún</h5>
+      <p class="text-muted">Sé el primero en compartir tu experiencia en este hotel.</p>
+      <button *ngIf="currentUser && reviewableBookings.length > 0" 
+              class="btn btn-primary" 
+              (click)="openCreateModal()">
+        <i class="fas fa-plus me-2"></i>
+        Escribir la primera reseña
+      </button>
+    </div>
+  </div>
+
+  <!-- Paginación -->
+  <nav *ngIf="totalPages > 1" class="d-flex justify-content-center mt-4">
+    <ul class="pagination">
+      <li class="page-item" [class.disabled]="currentPage === 0">
+        <button class="page-link" (click)="changePage(currentPage - 1)" [disabled]="currentPage === 0">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+      </li>
+      <li *ngFor="let page of [].constructor(totalPages); let i = index" 
+          class="page-item" 
+          [class.active]="i === currentPage">
+        <button class="page-link" (click)="changePage(i)">{{ i + 1 }}</button>
+      </li>
+      <li class="page-item" [class.disabled]="currentPage === totalPages - 1">
+        <button class="page-link" (click)="changePage(currentPage + 1)" [disabled]="currentPage === totalPages - 1">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </li>
+    </ul>
+  </nav>
+</div>
+
+<!-- Modal para crear reseña -->
+<div class="modal fade" [class.show]="showCreateModal" [style.display]="showCreateModal ? 'block' : 'none'" 
+     tabindex="-1" role="dialog" *ngIf="showCreateModal">
+  <div class="modal-backdrop fade show" (click)="closeCreateModal()"></div>
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-star me-2"></i>
+          Escribir reseña
+        </h5>
+        <button type="button" class="btn-close" (click)="closeCreateModal()"></button>
+      </div>
+      <form [formGroup]="createReviewForm" (ngSubmit)="submitCreateReview()">
+        <div class="modal-body">
+          <!-- Selección de reserva -->
+          <div class="mb-3">
+            <label for="bookingSelect" class="form-label">Selecciona tu estadía *</label>
+            <select id="bookingSelect" 
+                    class="form-select" 
+                    formControlName="bookingId"
+                    (change)="onBookingSelected()">
+              <option value="">Selecciona una reserva...</option>
+              <option *ngFor="let booking of reviewableBookings" [value]="booking.bookingId">
+                {{ booking.confirmationCode }} - 
+                {{ booking.checkInDate | date:'shortDate' }} a {{ booking.checkOutDate | date:'shortDate' }}
+              </option>
+            </select>
+            <div *ngIf="createReviewForm.get('bookingId')?.invalid && createReviewForm.get('bookingId')?.touched" 
+                 class="invalid-feedback d-block">
+              Selecciona una reserva válida
+            </div>
+          </div>
+
+          <!-- Calificación -->
+          <div class="mb-3">
+            <label class="form-label">Calificación *</label>
+            <div class="rating-selector">
+              <button *ngFor="let star of [1, 2, 3, 4, 5]" 
+                      type="button"
+                      class="btn btn-link p-0 me-1"
+                      (click)="createReviewForm.patchValue({rating: star})">
+                <i class="fas fa-star fa-2x" 
+                   [class.text-warning]="star <= (createReviewForm.get('rating')?.value || 0)"
+                   [class.text-muted]="star > (createReviewForm.get('rating')?.value || 0)"></i>
+              </button>
+              <span class="ms-2">{{ createReviewForm.get('rating')?.value || 0 }}/5</span>
+            </div>
+          </div>
+
+          <!-- Título -->
+          <div class="mb-3">
+            <label for="reviewTitle" class="form-label">Título de la reseña *</label>
+            <input type="text" 
+                   id="reviewTitle"
+                   class="form-control" 
+                   formControlName="title"
+                   placeholder="Resume tu experiencia en pocas palabras"
+                   maxlength="100">
+            <div *ngIf="createReviewForm.get('title')?.invalid && createReviewForm.get('title')?.touched" 
+                 class="invalid-feedback d-block">
+              El título es requerido (máximo 100 caracteres)
+            </div>
+          </div>
+
+          <!-- Comentario -->
+          <div class="mb-3">
+            <label for="reviewComment" class="form-label">Tu reseña *</label>
+            <textarea id="reviewComment"
+                      class="form-control" 
+                      formControlName="comment"
+                      rows="5"
+                      placeholder="Comparte los detalles de tu experiencia"
+                      maxlength="1000"></textarea>
+            <div class="form-text">
+              {{ createReviewForm.get('comment')?.value?.length || 0 }}/1000 caracteres
+            </div>
+            <div *ngIf="createReviewForm.get('comment')?.invalid && createReviewForm.get('comment')?.touched" 
+                 class="invalid-feedback d-block">
+              El comentario es requerido (máximo 1000 caracteres)
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeCreateModal()" [disabled]="isSubmitting">
+            Cancelar
+          </button>
+          <button type="submit" 
+                  class="btn btn-primary" 
+                  [disabled]="createReviewForm.invalid || isSubmitting">
+            <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2"></span>
+            <i *ngIf="!isSubmitting" class="fas fa-save me-2"></i>
+            {{ isSubmitting ? 'Guardando...' : 'Publicar reseña' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para editar reseña -->
+<div class="modal fade" [class.show]="showEditModal" [style.display]="showEditModal ? 'block' : 'none'" 
+     tabindex="-1" role="dialog" *ngIf="showEditModal">
+  <div class="modal-backdrop fade show" (click)="closeEditModal()"></div>
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-edit me-2"></i>
+          Editar reseña
+        </h5>
+        <button type="button" class="btn-close" (click)="closeEditModal()"></button>
+      </div>
+      <form [formGroup]="editReviewForm" (ngSubmit)="submitEditReview()">
+        <div class="modal-body">
+          <!-- Calificación -->
+          <div class="mb-3">
+            <label class="form-label">Calificación *</label>
+            <div class="rating-selector">
+              <button *ngFor="let star of [1, 2, 3, 4, 5]" 
+                      type="button"
+                      class="btn btn-link p-0 me-1"
+                      (click)="editReviewForm.patchValue({rating: star})">
+                <i class="fas fa-star fa-2x" 
+                   [class.text-warning]="star <= (editReviewForm.get('rating')?.value || 0)"
+                   [class.text-muted]="star > (editReviewForm.get('rating')?.value || 0)"></i>
+              </button>
+              <span class="ms-2">{{ editReviewForm.get('rating')?.value || 0 }}/5</span>
+            </div>
+          </div>
+
+          <!-- Título -->
+          <div class="mb-3">
+            <label for="editTitle" class="form-label">Título de la reseña *</label>
+            <input type="text" 
+                   id="editTitle"
+                   class="form-control" 
+                   formControlName="title"
+                   maxlength="100">
+            <div *ngIf="editReviewForm.get('title')?.invalid && editReviewForm.get('title')?.touched" 
+                 class="invalid-feedback d-block">
+              El título es requerido (máximo 100 caracteres)
+            </div>
+          </div>
+
+          <!-- Comentario -->
+          <div class="mb-3">
+            <label for="editComment" class="form-label">Tu reseña *</label>
+            <textarea id="editComment"
+                      class="form-control" 
+                      formControlName="comment"
+                      rows="5"
+                      maxlength="1000"></textarea>
+            <div class="form-text">
+              {{ editReviewForm.get('comment')?.value?.length || 0 }}/1000 caracteres
+            </div>
+            <div *ngIf="editReviewForm.get('comment')?.invalid && editReviewForm.get('comment')?.touched" 
+                 class="invalid-feedback d-block">
+              El comentario es requerido (máximo 1000 caracteres)
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeEditModal()" [disabled]="isSubmitting">
+            Cancelar
+          </button>
+          <button type="submit" 
+                  class="btn btn-primary" 
+                  [disabled]="editReviewForm.invalid || isSubmitting">
+            <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2"></span>
+            <i *ngIf="!isSubmitting" class="fas fa-save me-2"></i>
+            {{ isSubmitting ? 'Guardando...' : 'Actualizar reseña' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
