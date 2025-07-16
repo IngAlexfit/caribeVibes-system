@@ -27,6 +27,7 @@ public class HotelResponseDTO {
     private String email;
     private String website;
     private Integer stars;
+    private BigDecimal rating; // Calificación promedio de usuarios
     private BigDecimal basePrice;
     private String amenities;
     private String imageUrl;
@@ -40,6 +41,7 @@ public class HotelResponseDTO {
     private LocalTime checkOutTime;
     
     private String policies;
+    private String destinationName; // Nombre del destino para fácil acceso
     private DestinationBasicDTO destination;
     private List<RoomTypeResponseDTO> roomTypes;
 
@@ -162,6 +164,14 @@ public class HotelResponseDTO {
         this.stars = stars;
     }
 
+    public BigDecimal getRating() {
+        return rating;
+    }
+
+    public void setRating(BigDecimal rating) {
+        this.rating = rating;
+    }
+
     public BigDecimal getBasePrice() {
         return basePrice;
     }
@@ -224,6 +234,14 @@ public class HotelResponseDTO {
 
     public void setPolicies(String policies) {
         this.policies = policies;
+    }
+
+    public String getDestinationName() {
+        return destinationName;
+    }
+
+    public void setDestinationName(String destinationName) {
+        this.destinationName = destinationName;
     }
 
     public DestinationBasicDTO getDestination() {

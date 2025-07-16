@@ -339,6 +339,7 @@ public class HotelController {
         dto.setEmail(hotel.getEmail());
         dto.setWebsite(hotel.getWebsiteUrl());
         dto.setStars(hotel.getStars());
+        dto.setRating(hotel.getRating()); // Mapear el rating del hotel
         // Mapear el campo basePrice de la entidad Hotel
         dto.setBasePrice(hotel.getBasePrice());
         // Convertir List<String> a String - utilizando String.join
@@ -357,6 +358,9 @@ public class HotelController {
             hotel.getCancellationPolicy() != null ? hotel.getCancellationPolicy() : ""
         ).trim();
         dto.setPolicies(policies.isEmpty() ? null : policies);
+        
+        // Mapear el nombre del destino para fácil acceso en frontend
+        dto.setDestinationName(hotel.getDestination() != null ? hotel.getDestination().getName() : null);
         
         // Mapear el destino si está cargado
         if (hotel.getDestination() != null) {

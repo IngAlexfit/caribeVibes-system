@@ -200,14 +200,43 @@
             <h5 class="card-title text-secondary">{{ hotel.name }}</h5>
             <p class="text-muted small">
               <i class="fas fa-map-marker-alt me-1"></i>
-              {{ hotel.destinationName }}
+              {{ hotel.destinationName || 'Destino no especificado' }}
             </p>
+            
+            <!-- Categoría del hotel (estrellas) -->
             <div class="d-flex align-items-center mb-2">
-              <div class="stars me-2">
+              <small class="text-muted me-2">Categoría:</small>
+              <div class="stars">
                 <i class="fas fa-star text-warning" *ngFor="let star of [].constructor(hotel.stars)"></i>
               </div>
-              <span class="badge bg-success">{{ hotel.rating }}/5</span>
             </div>
+            
+            <!-- Rating de usuarios con manejo mejorado -->
+            <div class="d-flex align-items-center mb-2">
+              <small class="text-muted me-2">Valoración:</small>
+              <div class="d-flex align-items-center">
+                <!-- Mostrar solo si hay rating válido -->
+                <ng-container *ngIf="hotel.rating && hotel.rating > 0; else noReviews">
+                  <div class="rating-stars me-2">
+                    <i class="fas fa-star text-warning" *ngFor="let i of [1,2,3,4,5]; let idx = index"
+                       [class.text-muted]="idx + 1 > hotel.rating"
+                       [class.text-warning]="idx + 1 <= hotel.rating"></i>
+                  </div>
+                  <span class="badge bg-success">
+                    {{ hotel.rating | number:'1.1-1' }}/5
+                  </span>
+                </ng-container>
+                
+                <!-- Template para cuando no hay reseñas -->
+                <ng-template #noReviews>
+                  <div class="rating-stars me-2">
+                    <i class="far fa-star text-muted" *ngFor="let i of [1,2,3,4,5]"></i>
+                  </div>
+                  <span class="badge bg-secondary">Sin reseñas</span>
+                </ng-template>
+              </div>
+            </div>
+            
             <p class="card-text text-muted">{{ hotel.description | slice:0:100 }}...</p>
           </div>
         </div>

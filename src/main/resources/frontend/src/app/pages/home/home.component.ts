@@ -148,7 +148,14 @@ export class HomeComponent implements OnInit, AfterViewInit {
     return new Promise((resolve) => {
       this.hotelService.getTopRatedHotels(6).subscribe({
         next: (hotels) => {
+          console.log('Hotels loaded:', hotels); // Para debug
           this.topRatedHotels = hotels;
+          
+          // Debug: revisar rating de cada hotel
+          hotels.forEach(hotel => {
+            console.log(`Hotel: ${hotel.name}, Rating: ${hotel.rating}, Destination: ${hotel.destinationName}`);
+          });
+          
           resolve();
         },
         error: (error) => {
