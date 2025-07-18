@@ -160,7 +160,7 @@
             <h5 class="card-title text-secondary">{{ destination.name }}</h5>
             <p class="text-muted small" *ngIf="destination.location">{{ destination.location }}</p>
             <p class="text-muted small" *ngIf="!destination.location && destination.category">{{ destination.category }}</p>
-            <p class="card-text text-muted">{{ destination.description | slice:0:100 }}...</p>
+            <p class="card-text text-muted">{{ (destination.description || '').slice(0, 100) }}...</p>
             <div class="d-flex justify-content-between align-items-center">
               <span class="badge bg-primary">Popular</span>
               <i class="fas fa-arrow-right text-primary"></i>
@@ -223,7 +223,7 @@
                        [class.text-warning]="idx + 1 <= hotel.rating"></i>
                   </div>
                   <span class="badge bg-success">
-                    {{ hotel.rating | number:'1.1-1' }}/5
+                    {{ (hotel.rating || 0).toFixed(1) }}/5
                   </span>
                 </ng-container>
                 
@@ -237,7 +237,7 @@
               </div>
             </div>
             
-            <p class="card-text text-muted">{{ hotel.description | slice:0:100 }}...</p>
+            <p class="card-text text-muted">{{ (hotel.description || '').slice(0, 100) }}...</p>
           </div>
         </div>
       </div>

@@ -30,6 +30,9 @@ public class DestinationResponseDTO {
     private BigDecimal lowSeasonPrice; // Added based on DestinationService
     private BigDecimal highSeasonPrice; // Added based on DestinationService
     private LocalDateTime createdAt; // Added based on DestinationService
+    private String country; // Código del país (ej: "CO", "DO", "JM")
+    private String countryName; // Nombre del país (ej: "Colombia", "República Dominicana")
+    private Boolean isActive; // Estado activo/inactivo del destino
     // Add other relevant fields from the Destination entity
 
     @Getter

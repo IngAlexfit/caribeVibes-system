@@ -31,6 +31,7 @@ public class HotelResponseDTO {
     private BigDecimal basePrice;
     private String amenities;
     private String imageUrl;
+    private Boolean isActive; // Indica si el hotel está activo
     private Double latitude;
     private Double longitude;
     
@@ -194,6 +195,14 @@ public class HotelResponseDTO {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public Boolean getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
     }
 
     public Double getLatitude() {

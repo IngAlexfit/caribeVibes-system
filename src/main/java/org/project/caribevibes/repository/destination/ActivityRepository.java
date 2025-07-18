@@ -182,4 +182,11 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
      * @return Lista de actividades del destino ordenadas por nombre
      */
     List<Activity> findByDestinationIdOrderByNameAsc(Long destinationId);
+
+    /**
+     * Cuenta el número total de actividades disponibles
+     * 
+     * @return Número total de actividades disponibles
+     */
+    long countByIsAvailableTrue();
 }

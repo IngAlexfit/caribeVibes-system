@@ -170,6 +170,54 @@ export class DestinationService {
    * @returns {Observable<string>} Observable con mensaje de confirmación
    */
   deactivateDestination(id: number): Observable<string> {
-    return this.http.delete<string>(`${this.API_URL}/${id}`);
+    return this.http.delete(`${this.API_URL}/${id}`, { responseType: 'text' });
+  }
+
+  // Métodos específicos para administración
+  /**
+   * @method getDestinationsAdmin
+   * @description Obtiene destinos con filtros para administración
+   * @param {any} params - Parámetros de filtrado y paginación
+   * @returns {Observable<any>} Observable con la respuesta paginada
+   */
+  getDestinationsAdmin(params: any): Observable<any> {
+    let httpParams = new HttpParams();
+    Object.keys(params).forEach(key => {
+      if (params[key] !== undefined && params[key] !== null) {
+        httpParams = httpParams.set(key, params[key].toString());
+      }
+    });
+    return this.http.get<any>(`${this.API_URL}/admin`, { params: httpParams });
+  }
+
+  /**
+   * @method createDestinationAdmin
+   * @description Crea un destino usando DTOs de administración
+   * @param {any} destinationData - Datos del destino
+   * @returns {Observable<any>} Observable con el destino creado
+   */
+  createDestinationAdmin(destinationData: any): Observable<any> {
+    return this.http.post<any>(`${this.API_URL}/admin`, destinationData);
+  }
+
+  /**
+   * @method updateDestinationAdmin
+   * @description Actualiza un destino usando DTOs de administración
+   * @param {number} id - ID del destino
+   * @param {any} destinationData - Datos actualizados
+   * @returns {Observable<any>} Observable con el destino actualizado
+   */
+  updateDestinationAdmin(id: number, destinationData: any): Observable<any> {
+    return this.http.put<any>(`${this.API_URL}/admin/${id}`, destinationData);
+  }
+
+  /**
+   * @method deleteDestinationAdmin
+   * @description Elimina lógicamente un destino
+   * @param {number} id - ID del destino
+   * @returns {Observable<any>} Observable con confirmación
+   */
+  deleteDestinationAdmin(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.API_URL}/admin/${id}`);
   }
 }

@@ -81,46 +81,46 @@ INSERT INTO activities (destination_id, name, description, duration, price, diff
 (5, 'Camping en la Playa', 'Experiencia de camping frente al mar', '2 días', 180000.00, 'MODERATE', 10, TRUE);
 
 -- Insertar hoteles
-INSERT INTO hotels (destination_id, name, description, address, image_url, stars, amenities, phone_number, email, website_url, is_active) VALUES
+INSERT INTO hotels (destination_id, name, description, address, image_url, stars,  base_price, amenities, phone_number, email, website_url, is_active) VALUES
 -- Hoteles Cartagena
 (1, 'Hotel Boutique Casa San Agustín', 'Hotel boutique de lujo en el centro histórico', 'Calle Universidad 36-44, Centro Histórico', '/assets/images/hotel-casa-san-agustin.jpg', 5, 
-'["wifi", "spa", "piscina", "restaurante", "bar", "gimnasio", "aire_acondicionado", "servicio_habitaciones"]', 
+850000.00, '["wifi", "spa", "piscina", "restaurante", "bar", "gimnasio", "aire_acondicionado", "servicio_habitaciones"]', 
 '+57 5 642 8000', 'reservas@casasanagustin.com', 'https://casasanagustin.com', TRUE),
 
 (1, 'Hotel Charleston Santa Teresa', 'Hotel de lujo con vista al mar', 'Plaza de Santa Teresa, Centro Histórico', '/assets/images/hotel-charleston.jpg', 5,
-'["wifi", "spa", "piscina_infinita", "restaurante", "bar", "gimnasio", "terraza", "vista_mar"]',
+750000.00, '["wifi", "spa", "piscina_infinita", "restaurante", "bar", "gimnasio", "terraza", "vista_mar"]',
 '+57 5 664 9494', 'info@charleston.com.co', 'https://charleston.com.co', TRUE),
 
 (1, 'Hotel Caribe', 'Hotel clásico frente al mar', 'Carrera 1a 2-87, Bocagrande', '/assets/images/hotel-caribe.jpg', 4,
-'["wifi", "piscina", "restaurante", "bar", "playa_privada", "aire_acondicionado"]',
+450000.00, '["wifi", "piscina", "restaurante", "bar", "playa_privada", "aire_acondicionado"]',
 '+57 5 650 1010', 'reservas@hotelcaribe.com', 'https://hotelcaribe.com', TRUE),
 
 -- Hoteles Santa Marta
 (2, 'Hotel Casa de Leda', 'Boutique hotel con encanto colonial', 'Calle 16 3-56, Centro Histórico', '/assets/images/hotel-casa-leda.jpg', 4,
-'["wifi", "piscina", "restaurante", "bar", "terraza", "aire_acondicionado"]',
+480000.00, '["wifi", "piscina", "restaurante", "bar", "terraza", "aire_acondicionado"]',
 '+57 5 438 1111', 'info@casadeleda.com', 'https://casadeleda.com', TRUE),
 
 (2, 'Marriott Santa Marta', 'Hotel moderno frente al mar', 'Calle 22 3-34, Playa Salguero', '/assets/images/marriott-santa-marta.jpg', 5,
-'["wifi", "spa", "piscina", "restaurante", "bar", "gimnasio", "playa_privada", "centro_negocios"]',
+580000.00, '["wifi", "spa", "piscina", "restaurante", "bar", "gimnasio", "playa_privada", "centro_negocios"]',
 '+57 5 438 4000', 'santamarta@marriott.com', 'https://marriott.com/santamarta', TRUE),
 
 -- Hoteles San Andrés
 (3, 'Hotel Casa Harb', 'Hotel boutique con vista al mar', 'Av. Francisco Newball, Punta Norte', '/assets/images/hotel-casa-harb.jpg', 4,
-'["wifi", "piscina", "restaurante", "bar", "vista_mar", "aire_acondicionado"]',
+420000.00, '["wifi", "piscina", "restaurante", "bar", "vista_mar", "aire_acondicionado"]',
 '+57 8 513 0043', 'reservas@casaharb.com', 'https://casaharb.com', TRUE),
 
 (3, 'Decamerón San Luis', 'Resort todo incluido', 'Bahía San Luis', '/assets/images/decameron-san-luis.jpg', 4,
-'["wifi", "todo_incluido", "piscina", "restaurante", "bar", "playa_privada", "entretenimiento", "deportes_acuaticos"]',
+380000.00, '["wifi", "todo_incluido", "piscina", "restaurante", "bar", "playa_privada", "entretenimiento", "deportes_acuaticos"]',
 '+57 8 513 7018', 'sanandres@decameron.com', 'https://decameron.com/sanandres', TRUE),
 
 -- Hoteles Providencia
 (4, 'Hotel Sirius', 'Hotel ecológico en la naturaleza', 'Aguadulce, Providencia', '/assets/images/hotel-sirius.jpg', 3,
-'["wifi", "restaurante", "bar", "ecoturismo", "aire_acondicionado"]',
+350000.00, '["wifi", "restaurante", "bar", "ecoturismo", "aire_acondicionado"]',
 '+57 8 514 8213', 'info@hotelsirius.com', 'https://hotelsirius.com', TRUE),
 
 -- Hoteles Tayrona
 (5, 'Ecohabs Tayrona', 'Cabañas ecológicas en el parque', 'Parque Nacional Tayrona', '/assets/images/ecohabs-tayrona.jpg', 3,
-'["ecoturismo", "restaurante", "senderos", "playa_virgen"]',
+320000.00, '["ecoturismo", "restaurante", "senderos", "playa_virgen"]',
 '+57 5 438 3000', 'reservas@ecohabs.com', 'https://ecohabs.com', TRUE);
 
 -- Insertar tipos de habitaciones

@@ -116,13 +116,6 @@
                   Limpiando...
                 </span>
               </button>
-              <button 
-                class="btn btn-outline-info" 
-                (click)="runSystemMaintenance()"
-                [disabled]="isLoading">
-                <i class="fas fa-cogs me-2"></i>
-                Mantenimiento
-              </button>
               <a routerLink="/admin/contacts" class="btn btn-outline-primary">
                 <i class="fas fa-envelope me-2"></i>
                 Gestionar Contactos
@@ -130,6 +123,14 @@
               <a routerLink="/admin/bookings" class="btn btn-outline-success">
                 <i class="fas fa-calendar-check me-2"></i>
                 Gestionar Reservas
+              </a>
+              <a routerLink="/admin/hotels" class="btn btn-outline-info">
+                <i class="fas fa-hotel me-2"></i>
+                Gestionar Hoteles
+              </a>
+              <a routerLink="/admin/destinations" class="btn btn-outline-warning">
+                <i class="fas fa-map-marker-alt me-2"></i>
+                Gestionar Destinos
               </a>
             </div>
           </div>

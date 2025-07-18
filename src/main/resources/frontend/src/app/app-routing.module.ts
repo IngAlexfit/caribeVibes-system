@@ -21,6 +21,8 @@ import { ContactComponent } from './pages/contact/contact.component';
 import { AdminDashboardComponent } from './pages/admin/dashboard/admin-dashboard.component';
 import { AdminContactsComponent } from './pages/admin/contacts/admin-contacts.component';
 import { AdminBookingsComponent } from './pages/admin/bookings/admin-bookings.component';
+import { AdminHotelsComponent } from './pages/admin/hotels/admin-hotels.component';
+import { AdminDestinationsComponent } from './pages/admin/destinations/admin-destinations.component';
 
 /**
  * @constant {Routes} routes
@@ -91,6 +93,16 @@ const routes: Routes = [
       {
         path: 'bookings',
         component: AdminBookingsComponent,
+        canActivate: [AdminGuard]
+      },
+      {
+        path: 'hotels',
+        component: AdminHotelsComponent,
+        canActivate: [AdminGuard]
+      },
+      {
+        path: 'destinations',
+        component: AdminDestinationsComponent,
         canActivate: [AdminGuard]
       }
     ]

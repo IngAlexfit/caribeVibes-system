@@ -15,21 +15,21 @@
     <!-- Información del Hotel -->
     <div class="hotel-info" *ngIf="hotel">
       <div class="hotel-summary">
-        <img [src]="hotel.imageUrl" [alt]="hotel.name" class="hotel-image">
+        <img [src]="hotel.imageUrl || '/assets/images/default-hotel.jpg'" [alt]="hotel.name || 'Hotel'" class="hotel-image">
         <div class="hotel-details">
-          <h3>{{ hotel.name }}</h3>
+          <h3>{{ hotel.name || 'Hotel' }}</h3>
           <p class="hotel-location">
             <i class="fas fa-map-marker-alt"></i>
-            {{ hotel.destinationName }}
+            {{ hotel.destinationName || 'Destino' }}
           </p>
           <div class="hotel-rating">
             <span class="stars">
               <i *ngFor="let star of [1,2,3,4,5]" 
                  class="fas fa-star" 
-                 [class.filled]="star <= hotel.rating">
+                 [class.filled]="star <= (hotel.rating || 0)">
               </i>
             </span>
-            <span class="rating-text">({{ hotel.rating }}/5)</span>
+            <span class="rating-text">({{ hotel.rating || 0 }}/5)</span>
           </div>
         </div>
       </div>

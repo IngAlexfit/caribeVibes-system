@@ -1,9 +1,16 @@
 package org.project.caribevibes.service.hotel;
 
+import org.project.caribevibes.dto.request.CreateHotelRequestDTO;
+import org.project.caribevibes.dto.request.UpdateHotelRequestDTO;
+import org.project.caribevibes.dto.request.CreateRoomTypeRequestDTO;
+import org.project.caribevibes.dto.request.UpdateRoomTypeRequestDTO;
 import org.project.caribevibes.entity.hotel.Hotel;
 import org.project.caribevibes.entity.hotel.RoomType;
+import org.project.caribevibes.entity.destination.Destination;
 import org.project.caribevibes.repository.hotel.HotelRepository;
 import org.project.caribevibes.repository.hotel.RoomTypeRepository;
+import org.project.caribevibes.repository.destination.DestinationRepository;
+import org.project.caribevibes.exception.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,7 +50,10 @@ public class HotelService {
     private HotelRepository hotelRepository;
 
     @Autowired
-    private RoomTypeRepository roomTypeRepository;    /**
+    private RoomTypeRepository roomTypeRepository;
+
+    @Autowired
+    private DestinationRepository destinationRepository;    /**
      * Obtiene todos los hoteles activos paginados.
      * 
      * @param pageable Configuración de paginación
@@ -55,6 +66,19 @@ public class HotelService {
                     pageable.getPageNumber(), pageable.getPageSize());
         logger.info("📊 CACHE MISS - Los datos se están obteniendo desde la base de datos");
         return hotelRepository.findAllActiveHotelsWithDestination(pageable);
+    }
+
+    /**
+     * Obtiene todos los hoteles (incluidos inactivos) para administración.
+     * 
+     * @param pageable Configuración de paginación
+     * @return Página de todos los hoteles
+     */
+    @Transactional(readOnly = true)
+    public Page<Hotel> findAllHotelsForAdmin(Pageable pageable) {
+        logger.debug("Obteniendo todos los hoteles para administración - página: {}, tamaño: {}", 
+                    pageable.getPageNumber(), pageable.getPageSize());
+        return hotelRepository.findAllWithDestination(pageable);
     }
 
     /**
@@ -291,5 +315,188 @@ public class HotelService {
     public long countActiveHotels() {
         logger.debug("Contando todos los hoteles activos");
         return hotelRepository.countByIsActiveTrue();
+    }
+
+    /**
+     * Crea un nuevo hotel desde un DTO.
+     * 
+     * @param createHotelDTO DTO con los datos del hotel
+     * @return Hotel creado
+     */
+    public Hotel createHotelFromDTO(CreateHotelRequestDTO createHotelDTO) {
+        logger.info("Creando nuevo hotel: {}", createHotelDTO.getName());
+        
+        // Buscar el destino
+        Destination destination = destinationRepository.findById(createHotelDTO.getDestinationId())
+                .orElseThrow(() -> new ResourceNotFoundException("Destino no encontrado con ID: " + createHotelDTO.getDestinationId()));
+        
+        Hotel hotel = new Hotel();
+        hotel.setName(createHotelDTO.getName());
+        hotel.setDescription(createHotelDTO.getDescription());
+        hotel.setAddress(createHotelDTO.getAddress());
+        hotel.setDestination(destination);
+        hotel.setBasePrice(createHotelDTO.getBasePrice());
+        
+        // Establecer las estrellas del hotel (categoría)
+        if (createHotelDTO.getStars() != null) {
+            hotel.setStars(createHotelDTO.getStars());
+        }
+        
+        // Convertir String a List<String> para amenities
+        if (createHotelDTO.getAmenities() != null && !createHotelDTO.getAmenities().trim().isEmpty()) {
+            List<String> amenitiesList = List.of(createHotelDTO.getAmenities().split(","));
+            hotel.setAmenities(amenitiesList.stream()
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .toList());
+        }
+        
+        hotel.setPhoneNumber(createHotelDTO.getPhoneNumber());
+        hotel.setEmail(createHotelDTO.getEmail());
+        hotel.setImageUrl(createHotelDTO.getImageUrl());
+        hotel.setIsActive(createHotelDTO.getActive());
+        
+        Hotel savedHotel = hotelRepository.save(hotel);
+        logger.info("Hotel creado exitosamente con ID: {}", savedHotel.getId());
+        
+        return savedHotel;
+    }
+
+    /**
+     * Actualiza un hotel existente desde un DTO.
+     * 
+     * @param id ID del hotel a actualizar
+     * @param updateHotelDTO DTO con los datos actualizados
+     * @return Optional con el hotel actualizado
+     */
+    public Optional<Hotel> updateHotelFromDTO(Long id, UpdateHotelRequestDTO updateHotelDTO) {
+        logger.info("Actualizando hotel con ID: {}", id);
+        
+        return hotelRepository.findById(id)
+                .map(hotel -> {
+                    // Buscar el destino si cambió
+                    if (!hotel.getDestination().getId().equals(updateHotelDTO.getDestinationId())) {
+                        Destination destination = destinationRepository.findById(updateHotelDTO.getDestinationId())
+                                .orElseThrow(() -> new ResourceNotFoundException("Destino no encontrado con ID: " + updateHotelDTO.getDestinationId()));
+                        hotel.setDestination(destination);
+                    }
+                    
+                    hotel.setName(updateHotelDTO.getName());
+                    hotel.setDescription(updateHotelDTO.getDescription());
+                    hotel.setAddress(updateHotelDTO.getAddress());
+                    hotel.setBasePrice(updateHotelDTO.getBasePrice());
+                    
+                    // Establecer las estrellas del hotel (categoría)
+                    if (updateHotelDTO.getStars() != null) {
+                        hotel.setStars(updateHotelDTO.getStars());
+                    }
+                    
+                    // Convertir String a List<String> para amenities
+                    if (updateHotelDTO.getAmenities() != null && !updateHotelDTO.getAmenities().trim().isEmpty()) {
+                        List<String> amenitiesList = List.of(updateHotelDTO.getAmenities().split(","));
+                        hotel.setAmenities(amenitiesList.stream()
+                                .map(String::trim)
+                                .filter(s -> !s.isEmpty())
+                                .toList());
+                    }
+                    
+                    hotel.setPhoneNumber(updateHotelDTO.getPhoneNumber());
+                    hotel.setEmail(updateHotelDTO.getEmail());
+                    hotel.setImageUrl(updateHotelDTO.getImageUrl());
+                    hotel.setIsActive(updateHotelDTO.getActive());
+                    
+                    Hotel savedHotel = hotelRepository.save(hotel);
+                    logger.info("Hotel actualizado exitosamente: {}", savedHotel.getName());
+                    
+                    return savedHotel;
+                });
+    }
+
+    /**
+     * Crea un nuevo tipo de habitación desde un DTO.
+     * 
+     * @param hotelId ID del hotel
+     * @param createRoomTypeDTO DTO con los datos del tipo de habitación
+     * @return Tipo de habitación creado
+     */
+    public RoomType createRoomTypeFromDTO(Long hotelId, CreateRoomTypeRequestDTO createRoomTypeDTO) {
+        logger.info("Creando nuevo tipo de habitación: {} para hotel ID: {}", createRoomTypeDTO.getName(), hotelId);
+        
+        // Buscar el hotel
+        Hotel hotel = hotelRepository.findById(hotelId)
+                .orElseThrow(() -> new ResourceNotFoundException("Hotel no encontrado con ID: " + hotelId));
+        
+        RoomType roomType = new RoomType();
+        roomType.setName(createRoomTypeDTO.getName());
+        roomType.setDescription(createRoomTypeDTO.getDescription());
+        roomType.setPricePerNight(createRoomTypeDTO.getPrice());
+        roomType.setCapacity(createRoomTypeDTO.getCapacity());
+        roomType.setAvailableRooms(createRoomTypeDTO.getAvailableRooms());
+        roomType.setTotalRooms(createRoomTypeDTO.getAvailableRooms()); // Por defecto, igual a disponibles
+        roomType.setHotel(hotel);
+        roomType.setIsActive(createRoomTypeDTO.getActive());
+        
+        RoomType savedRoomType = roomTypeRepository.save(roomType);
+        logger.info("Tipo de habitación creado exitosamente con ID: {}", savedRoomType.getId());
+        
+        return savedRoomType;
+    }
+
+    /**
+     * Actualiza un tipo de habitación existente desde un DTO.
+     * 
+     * @param hotelId ID del hotel
+     * @param roomTypeId ID del tipo de habitación a actualizar
+     * @param updateRoomTypeDTO DTO con los datos actualizados
+     * @return Optional con el tipo de habitación actualizado
+     */
+    public Optional<RoomType> updateRoomTypeFromDTO(Long hotelId, Long roomTypeId, UpdateRoomTypeRequestDTO updateRoomTypeDTO) {
+        logger.info("Actualizando tipo de habitación con ID: {} para hotel ID: {}", roomTypeId, hotelId);
+        
+        return roomTypeRepository.findByIdAndHotelIdAndIsActiveTrue(roomTypeId, hotelId)
+                .map(roomType -> {
+                    roomType.setName(updateRoomTypeDTO.getName());
+                    roomType.setDescription(updateRoomTypeDTO.getDescription());
+                    roomType.setPricePerNight(updateRoomTypeDTO.getPrice());
+                    roomType.setCapacity(updateRoomTypeDTO.getCapacity());
+                    roomType.setAvailableRooms(updateRoomTypeDTO.getAvailableRooms());
+                    
+                    RoomType savedRoomType = roomTypeRepository.save(roomType);
+                    logger.info("Tipo de habitación actualizado exitosamente: {}", savedRoomType.getName());
+                    
+                    return savedRoomType;
+                });
+    }
+
+    /**
+     * Elimina un tipo de habitación (eliminación lógica).
+     * 
+     * @param hotelId ID del hotel
+     * @param roomTypeId ID del tipo de habitación a eliminar
+     * @return true si se eliminó exitosamente, false si no existe
+     */
+    public boolean deleteRoomType(Long hotelId, Long roomTypeId) {
+        logger.info("Eliminando tipo de habitación con ID: {} del hotel ID: {}", roomTypeId, hotelId);
+        
+        return roomTypeRepository.findByIdAndHotelIdAndIsActiveTrue(roomTypeId, hotelId)
+                .map(roomType -> {
+                    roomType.setIsActive(false);
+                    roomTypeRepository.save(roomType);
+                    logger.info("Tipo de habitación eliminado exitosamente: {}", roomType.getName());
+                    return true;
+                })
+                .orElse(false);
+    }
+
+    /**
+     * Obtiene un tipo de habitación por su ID.
+     * 
+     * @param roomTypeId ID del tipo de habitación
+     * @return Optional con el tipo de habitación encontrado
+     */
+    @Transactional(readOnly = true)
+    public Optional<RoomType> getRoomTypeById(Long roomTypeId) {
+        logger.debug("Buscando tipo de habitación con ID: {}", roomTypeId);
+        return roomTypeRepository.findByIdAndIsActiveTrue(roomTypeId);
     }
 }

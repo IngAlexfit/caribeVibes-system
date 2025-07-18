@@ -2,13 +2,18 @@ package org.project.caribevibes.service.destination;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.project.caribevibes.dto.request.CreateDestinationRequestDTO;
+import org.project.caribevibes.dto.request.UpdateDestinationRequestDTO;
 import org.project.caribevibes.dto.response.DestinationResponseDTO;
 import org.project.caribevibes.dto.response.ExperienceResponseDTO;
 import org.project.caribevibes.entity.destination.Activity;
+import org.project.caribevibes.entity.destination.Country;
 import org.project.caribevibes.entity.destination.Destination;
 import org.project.caribevibes.entity.destination.Experience;
 import org.project.caribevibes.exception.destination.DestinationNotFoundException;
+import org.project.caribevibes.exception.ResourceNotFoundException;
 import org.project.caribevibes.repository.destination.ActivityRepository;
+import org.project.caribevibes.repository.destination.CountryRepository;
 import org.project.caribevibes.repository.destination.DestinationRepository;
 import org.project.caribevibes.repository.destination.ExperienceRepository;
 import org.springframework.data.domain.Page;
@@ -19,7 +24,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -40,6 +47,7 @@ public class DestinationService {
     private final DestinationRepository destinationRepository;
     private final ExperienceRepository experienceRepository;
     private final ActivityRepository activityRepository;
+    private final CountryRepository countryRepository;
 
     /**
      * Obtiene todos los destinos disponibles con paginación
@@ -52,17 +60,44 @@ public class DestinationService {
      */
     @Transactional(readOnly = true)
     public Page<DestinationResponseDTO> getAllDestinations(int page, int size, String sortBy, String sortDir) {
-        log.debug("Obteniendo destinos - Página: {}, Tamaño: {}, Orden: {} {}", page, size, sortBy, sortDir);
+        log.debug("Obteniendo destinos activos - Página: {}, Tamaño: {}, Orden: {} {}", page, size, sortBy, sortDir);
 
         // Crear configuración de paginación y ordenamiento
         Sort.Direction direction = sortDir.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-        // Obtener destinos con paginación
+        // Obtener solo destinos activos con paginación
+        Page<Destination> destinationsPage = destinationRepository.findActiveDestinations(pageable);
+
+        // Convertir a DTOs (el país se carga automáticamente por la relación @ManyToOne)
+        return destinationsPage.map(this::convertToDestinationDTO);
+    }
+
+    /**
+     * Obtiene todos los destinos para administración (incluye activos e inactivos) con paginación
+     * 
+     * @param page Número de página (0-based)
+     * @param size Tamaño de página
+     * @param sortBy Campo por el cual ordenar
+     * @param sortDir Dirección del ordenamiento (asc/desc)
+     * @return Página de destinos
+     */
+    @Transactional(readOnly = true)
+    public Page<DestinationResponseDTO> getAllDestinationsForAdmin(int page, int size, String sortBy, String sortDir) {
+        log.debug("Obteniendo destinos para administración - Página: {}, Tamaño: {}, Orden: {} {}", page, size, sortBy, sortDir);
+
+        // Crear configuración de paginación y ordenamiento
+        Sort.Direction direction = sortDir.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+        // Obtener todos los destinos (activos e inactivos) para administración
         Page<Destination> destinationsPage = destinationRepository.findAll(pageable);
 
-        // Convertir a DTOs
-        return destinationsPage.map(this::convertToDestinationDTO);
+        // Convertir a DTOs (el país se carga automáticamente por la relación @ManyToOne)
+        Page<DestinationResponseDTO> result = destinationsPage.map(this::convertToDestinationDTO);
+        
+        log.debug("Retornando {} destinos de {} total para administración", result.getNumberOfElements(), result.getTotalElements());
+        return result;
     }
 
     /**
@@ -70,15 +105,15 @@ public class DestinationService {
      * 
      * @param slug Identificador único del destino
      * @return DTO del destino con información detallada
-     * @throws DestinationNotFoundException Si el destino no existe
+     * @throws DestinationNotFoundException Si el destino no existe o está inactivo
      */
     @Transactional(readOnly = true)
     public DestinationResponseDTO getDestinationBySlug(String slug) {
-        log.debug("Obteniendo destino por slug: {}", slug);
+        log.debug("Obteniendo destino activo por slug: {}", slug);
 
-        Destination destination = destinationRepository.findBySlug(slug)
+        Destination destination = destinationRepository.findBySlugAndIsActiveTrue(slug)
             .orElseThrow(() -> {
-                log.warn("Destino no encontrado con slug: {}", slug);
+                log.warn("Destino activo no encontrado con slug: {}", slug);
                 return new DestinationNotFoundException("Destino no encontrado: " + slug);
             });
 
@@ -214,14 +249,14 @@ public class DestinationService {
      */
     @Transactional(readOnly = true)
     public Page<DestinationResponseDTO> searchDestinations(String searchTerm, int page, int size) {
-        log.debug("Buscando destinos con término: {}", searchTerm);
+        log.debug("Buscando destinos activos con término: {}", searchTerm);
 
         if (searchTerm == null || searchTerm.trim().isEmpty()) {
             return getAllDestinations(page, size, "name", "asc");
         }
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("name"));
-        List<Destination> destinations = destinationRepository.findByNameContainingIgnoreCase(searchTerm.trim());
+        List<Destination> destinations = destinationRepository.findByNameContainingIgnoreCaseAndIsActiveTrue(searchTerm.trim());
 
         // Simular paginación
         int start = page * size;
@@ -251,7 +286,14 @@ public class DestinationService {
             .tags(destination.getTags())
             .lowSeasonPrice(destination.getLowSeasonPrice())
             .highSeasonPrice(destination.getHighSeasonPrice())
-            .createdAt(destination.getCreatedAt());
+            .createdAt(destination.getCreatedAt())
+            .isActive(destination.getIsActive());
+
+        // Mapear información del país
+        if (destination.getCountry() != null) {
+            builder.country(destination.getCountry().getCode())
+                   .countryName(destination.getCountry().getName());
+        }
 
         if (destination.getExperiences() != null) {
             builder.experiences(destination.getExperiences().stream()
@@ -485,9 +527,17 @@ public class DestinationService {
     public boolean deactivateDestination(Long id) {
         log.info("Desactivando destino con ID: {}", id);
 
-        // Como no tenemos un campo isActive en Destination, implementaremos
-        // esta funcionalidad de forma simple retornando true si existe
-        return destinationRepository.findById(id).isPresent();
+        Optional<Destination> destinationOpt = destinationRepository.findById(id);
+        if (destinationOpt.isPresent()) {
+            Destination destination = destinationOpt.get();
+            destination.setIsActive(false);
+            destinationRepository.save(destination);
+            log.info("Destino desactivado exitosamente: {}", destination.getName());
+            return true;
+        }
+        
+        log.warn("No se encontró el destino con ID: {}", id);
+        return false;
     }
 
     /**
@@ -497,8 +547,8 @@ public class DestinationService {
      */
     @Transactional(readOnly = true)
     public long countActiveDestinations() {
-        log.debug("Contando todos los destinos");
-        return destinationRepository.count();
+        log.debug("Contando destinos activos");
+        return destinationRepository.countByIsActiveTrue();
     }
 
     /**
@@ -512,5 +562,91 @@ public class DestinationService {
         private Long totalDestinations;
         private Long totalExperiences;
         private Long totalActivities;
+    }
+
+    /**
+     * Crea un nuevo destino desde un DTO.
+     * 
+     * @param createDestinationDTO DTO con los datos del destino
+     * @return Destino creado
+     */
+    public Destination createDestinationFromDTO(CreateDestinationRequestDTO createDestinationDTO) {
+        log.info("Creando nuevo destino: {}", createDestinationDTO.getName());
+        
+        // Buscar el país por código
+        Country country = countryRepository.findByCode(createDestinationDTO.getCountry())
+                .orElseThrow(() -> {
+                    log.warn("País no encontrado con código: {}", createDestinationDTO.getCountry());
+                    return new DestinationNotFoundException("País no encontrado con código: " + createDestinationDTO.getCountry());
+                });
+        
+        Destination destination = new Destination();
+        destination.setName(createDestinationDTO.getName());
+        destination.setDescription(createDestinationDTO.getDescription());
+        destination.setCountry(country);
+        destination.setLocation(createDestinationDTO.getCountry()); // Usar country como location por ahora
+        destination.setImageUrl(createDestinationDTO.getImageUrl());
+        destination.setIsActive(true); // Asegurar que el destino esté activo por defecto
+        
+        // Generar slug a partir del nombre
+        destination.setSlug(generateSlug(createDestinationDTO.getName()));
+        
+        Destination savedDestination = destinationRepository.save(destination);
+        log.info("Destino creado exitosamente con ID: {}", savedDestination.getId());
+        
+        return savedDestination;
+    }
+
+    /**
+     * Actualiza un destino existente desde un DTO.
+     * 
+     * @param id ID del destino a actualizar
+     * @param updateDestinationDTO DTO con los datos actualizados
+     * @return Optional con el destino actualizado
+     */
+    public Optional<Destination> updateDestinationFromDTO(Long id, UpdateDestinationRequestDTO updateDestinationDTO) {
+        log.info("Actualizando destino con ID: {}", id);
+        
+        return destinationRepository.findById(id)
+                .map(destination -> {
+                    // Buscar o crear el país si cambió
+                    if (!destination.getCountry().getCode().equals(updateDestinationDTO.getCountry())) {
+                        Country country = countryRepository.findByCode(updateDestinationDTO.getCountry())
+                                .orElseThrow(() -> {
+                                    log.warn("País no encontrado con código: {}", updateDestinationDTO.getCountry());
+                                    return new DestinationNotFoundException("País no encontrado con código: " + updateDestinationDTO.getCountry());
+                                });
+                        destination.setCountry(country);
+                    }
+                    
+                    destination.setName(updateDestinationDTO.getName());
+                    destination.setDescription(updateDestinationDTO.getDescription());
+                    destination.setLocation(updateDestinationDTO.getCountry()); // Usar country como location
+                    destination.setImageUrl(updateDestinationDTO.getImageUrl());
+                    
+                    // Actualizar el estado activo si se proporciona
+                    if (updateDestinationDTO.getActive() != null) {
+                        destination.setIsActive(updateDestinationDTO.getActive());
+                    }
+                    
+                    Destination savedDestination = destinationRepository.save(destination);
+                    log.info("Destino actualizado exitosamente: {}", savedDestination.getName());
+                    
+                    return savedDestination;
+                });
+    }
+
+    /**
+     * Genera un slug a partir del nombre del destino.
+     * 
+     * @param name Nombre del destino
+     * @return Slug generado
+     */
+    private String generateSlug(String name) {
+        return name.toLowerCase()
+                .replaceAll("[^a-z0-9\\s-]", "")
+                .replaceAll("\\s+", "-")
+                .replaceAll("-+", "-")
+                .replaceAll("^-|-$", "");
     }
 }

@@ -218,4 +218,13 @@ public interface RoomTypeRepository extends JpaRepository<RoomType, Long> {
      * @return Optional con el tipo de habitación si existe y está activo
      */
     Optional<RoomType> findByIdAndIsActiveTrue(Long id);
+
+    /**
+     * Obtiene un tipo de habitación activo por ID y hotel ID.
+     * 
+     * @param id ID del tipo de habitación
+     * @param hotelId ID del hotel
+     * @return Optional con el tipo de habitación si existe, está activo y pertenece al hotel
+     */
+    Optional<RoomType> findByIdAndHotelIdAndIsActiveTrue(Long id, Long hotelId);
 }

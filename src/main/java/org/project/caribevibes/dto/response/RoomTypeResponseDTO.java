@@ -25,6 +25,7 @@ public class RoomTypeResponseDTO {
     private String imageUrl;
     private Integer totalRooms;
     private Integer availableRooms;
+    private Boolean isActive;
 
     /**
      * Constructor por defecto.
@@ -45,11 +46,12 @@ public class RoomTypeResponseDTO {
      * @param imageUrl URL de la imagen
      * @param totalRooms Total de habitaciones de este tipo
      * @param availableRooms Habitaciones disponibles
+     * @param isActive Estado activo/inactivo del tipo de habitación
      */
     public RoomTypeResponseDTO(Long id, String name, String description, Integer maxOccupancy, 
                               String bedType, Double size, BigDecimal pricePerNight, 
                               String amenities, String imageUrl, Integer totalRooms, 
-                              Integer availableRooms) {
+                              Integer availableRooms, Boolean isActive) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -61,6 +63,7 @@ public class RoomTypeResponseDTO {
         this.imageUrl = imageUrl;
         this.totalRooms = totalRooms;
         this.availableRooms = availableRooms;
+        this.isActive = isActive;
     }
 
     // Getters y Setters
@@ -153,6 +156,14 @@ public class RoomTypeResponseDTO {
         this.availableRooms = availableRooms;
     }
 
+    public Boolean getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
+    }
+
     @Override
     public String toString() {
         return "RoomTypeResponseDTO{" +
@@ -161,6 +172,7 @@ public class RoomTypeResponseDTO {
                 ", maxOccupancy=" + maxOccupancy +
                 ", pricePerNight=" + pricePerNight +
                 ", availableRooms=" + availableRooms +
+                ", isActive=" + isActive +
                 '}';
     }
 }

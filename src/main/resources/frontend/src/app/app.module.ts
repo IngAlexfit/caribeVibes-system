@@ -1,9 +1,10 @@
-import { NgModule } from '@angular/core';
+import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe, CurrencyPipe, DecimalPipe, SlicePipe } from '@angular/common';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -32,6 +33,8 @@ import { ContactComponent } from './pages/contact/contact.component';
 import { AdminDashboardComponent } from './pages/admin/dashboard/admin-dashboard.component';
 import { AdminContactsComponent } from './pages/admin/contacts/admin-contacts.component';
 import { AdminBookingsComponent } from './pages/admin/bookings/admin-bookings.component';
+import { AdminHotelsComponent } from './pages/admin/hotels/admin-hotels.component';
+import { AdminDestinationsComponent } from './pages/admin/destinations/admin-destinations.component';
 
 // Feature Modules
 import { HotelReviewsModule } from './features/hotel-reviews/hotel-reviews.module';
@@ -60,7 +63,9 @@ import { HotelReviewsModule } from './features/hotel-reviews/hotel-reviews.modul
     // Admin Components
     AdminDashboardComponent,
     AdminContactsComponent,
-    AdminBookingsComponent
+    AdminBookingsComponent,
+    AdminHotelsComponent,
+    AdminDestinationsComponent
   ],
   imports: [
     BrowserModule,
@@ -69,10 +74,16 @@ import { HotelReviewsModule } from './features/hotel-reviews/hotel-reviews.modul
     HttpClientModule,
     ReactiveFormsModule,
     FormsModule,
+    RouterModule,
     AppRoutingModule,
     HotelReviewsModule
   ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   providers: [
+    DatePipe,
+    CurrencyPipe,
+    DecimalPipe,
+    SlicePipe,
     {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptor,

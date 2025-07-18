@@ -33,6 +33,8 @@ export interface Hotel {
   destinationName?: string;
   /** @property {any} destination - Información del destino */
   destination?: any;
+  /** @property {string} amenities - Comodidades del hotel */
+  amenities?: string;
   /** @property {RoomType[]} [roomTypes] - Tipos de habitaciones disponibles */
   roomTypes?: RoomType[];
 }
@@ -46,6 +48,8 @@ export interface RoomType {
   id: number;
   /** @property {string} name - Nombre del tipo de habitación (ej. Suite, Doble, etc.) */
   name: string;
+  /** @property {string} typeName - Nombre alternativo del tipo de habitación */
+  typeName?: string;
   /** @property {string} description - Descripción detallada de la habitación */
   description?: string;
   /** @property {number} capacity - Capacidad máxima de huéspedes */
@@ -56,14 +60,20 @@ export interface RoomType {
   bedType?: string;
   /** @property {number} pricePerNight - Precio por noche */
   pricePerNight: number;
+  /** @property {number} price - Precio alternativo (compatibilidad) */
+  price?: number;
+  /** @property {number} availableRooms - Habitaciones disponibles */
+  availableRooms?: number;
+  /** @property {number} totalRooms - Total de habitaciones */
+  totalRooms?: number;
   /** @property {string} imageUrl - URL de la imagen de la habitación */
-  imageUrl: string;
+  imageUrl?: string;
   /** @property {boolean} isActive - Indica si este tipo de habitación está disponible */
   isActive: boolean;
   /** @property {number} hotelId - ID del hotel al que pertenece */
   hotelId: number;
   /** @property {string[]} amenities - Comodidades incluidas en la habitación */
-  amenities: string[];
+  amenities?: string[];
 }
 
 /**
@@ -91,6 +101,10 @@ export interface HotelResponse {
   stars: number;
   /** @property {number} rating - Calificación promedio de usuarios (1-5) */
   rating: number;
+  /** @property {number} basePrice - Precio base del hotel */
+  basePrice: number;
+  /** @property {boolean} isActive - Indica si el hotel está activo para reservas */
+  isActive: boolean;
   /** @property {string} destinationName - Nombre del destino donde se encuentra */
   destinationName: string;
   /** @property {RoomType[]} roomTypes - Tipos de habitaciones disponibles */

@@ -1,5 +1,9 @@
 package org.project.caribevibes.controller;
 
+import org.project.caribevibes.dto.request.CreateHotelRequestDTO;
+import org.project.caribevibes.dto.request.UpdateHotelRequestDTO;
+import org.project.caribevibes.dto.request.CreateRoomTypeRequestDTO;
+import org.project.caribevibes.dto.request.UpdateRoomTypeRequestDTO;
 import org.project.caribevibes.dto.response.HotelResponseDTO;
 import org.project.caribevibes.dto.response.RoomTypeResponseDTO;
 import org.project.caribevibes.dto.response.DestinationBasicDTO;
@@ -18,6 +22,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -267,15 +272,15 @@ public class HotelController {
     /**
      * Crea un nuevo hotel (solo para administradores).
      * 
-     * @param hotel Datos del hotel a crear
+     * @param createHotelDTO Datos del hotel a crear
      * @return ResponseEntity con el hotel creado
      */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<HotelResponseDTO> createHotel(@RequestBody Hotel hotel) {
-        logger.info("Creando nuevo hotel: {}", hotel.getName());
+    public ResponseEntity<HotelResponseDTO> createHotel(@Valid @RequestBody CreateHotelRequestDTO createHotelDTO) {
+        logger.info("Creando nuevo hotel: {}", createHotelDTO.getName());
         
-        Hotel createdHotel = hotelService.createHotel(hotel);
+        Hotel createdHotel = hotelService.createHotelFromDTO(createHotelDTO);
         HotelResponseDTO hotelDTO = convertToHotelResponseDTO(createdHotel);
         
         logger.info("Hotel creado exitosamente con ID: {}", createdHotel.getId());
@@ -286,15 +291,15 @@ public class HotelController {
      * Actualiza un hotel existente (solo para administradores).
      * 
      * @param id ID del hotel a actualizar
-     * @param hotel Datos actualizados del hotel
+     * @param updateHotelDTO Datos actualizados del hotel
      * @return ResponseEntity con el hotel actualizado
      */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<HotelResponseDTO> updateHotel(@PathVariable Long id, @RequestBody Hotel hotel) {
+    public ResponseEntity<HotelResponseDTO> updateHotel(@PathVariable Long id, @Valid @RequestBody UpdateHotelRequestDTO updateHotelDTO) {
         logger.info("Actualizando hotel con ID: {}", id);
         
-        Hotel updatedHotel = hotelService.updateHotel(id, hotel)
+        Hotel updatedHotel = hotelService.updateHotelFromDTO(id, updateHotelDTO)
                 .orElseThrow(() -> new ResourceNotFoundException("Hotel", "id", id));
         
         HotelResponseDTO hotelDTO = convertToHotelResponseDTO(updatedHotel);
@@ -324,6 +329,101 @@ public class HotelController {
     }
 
     /**
+     * Obtiene todos los hoteles (incluidos inactivos) para panel de administración.
+     * 
+     * @param page Número de página (default: 0)
+     * @param size Tamaño de página (default: 10)
+     * @param sortBy Campo de ordenamiento (default: name)
+     * @param sortDir Dirección de ordenamiento (default: asc)
+     * @return ResponseEntity con página de todos los hoteles
+     */
+    @GetMapping("/admin/all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Page<HotelResponseDTO>> getAllHotelsForAdmin(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "name") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir) {
+        
+        logger.debug("Obteniendo todos los hoteles para administración - página: {}, tamaño: {}, ordenar por: {}, dirección: {}", 
+                    page, size, sortBy, sortDir);
+        
+        Sort sort = sortDir.equalsIgnoreCase("desc") ? 
+                   Sort.by(sortBy).descending() : 
+                   Sort.by(sortBy).ascending();
+        
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<Hotel> hotels = hotelService.findAllHotelsForAdmin(pageable);
+        
+        Page<HotelResponseDTO> hotelDTOs = hotels.map(this::convertToHotelResponseDTO);
+        
+        logger.debug("Retornando {} hoteles de {} total para administración", hotelDTOs.getNumberOfElements(), hotelDTOs.getTotalElements());
+        return ResponseEntity.ok(hotelDTOs);
+    }
+
+    /**
+     * Crea un nuevo tipo de habitación para un hotel (solo para administradores).
+     * 
+     * @param hotelId ID del hotel
+     * @param createRoomTypeDTO Datos del tipo de habitación a crear
+     * @return ResponseEntity con el tipo de habitación creado
+     */
+    @PostMapping("/{hotelId}/room-types")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<RoomTypeResponseDTO> createRoomType(@PathVariable Long hotelId, @Valid @RequestBody CreateRoomTypeRequestDTO createRoomTypeDTO) {
+        logger.info("Creando nuevo tipo de habitación para hotel ID: {}", hotelId);
+        
+        RoomType createdRoomType = hotelService.createRoomTypeFromDTO(hotelId, createRoomTypeDTO);
+        RoomTypeResponseDTO roomTypeDTO = convertToRoomTypeResponseDTO(createdRoomType);
+        
+        logger.info("Tipo de habitación creado exitosamente con ID: {}", createdRoomType.getId());
+        return ResponseEntity.status(201).body(roomTypeDTO);
+    }
+
+    /**
+     * Actualiza un tipo de habitación existente (solo para administradores).
+     * 
+     * @param hotelId ID del hotel
+     * @param roomTypeId ID del tipo de habitación a actualizar
+     * @param updateRoomTypeDTO Datos actualizados del tipo de habitación
+     * @return ResponseEntity con el tipo de habitación actualizado
+     */
+    @PutMapping("/{hotelId}/room-types/{roomTypeId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<RoomTypeResponseDTO> updateRoomType(@PathVariable Long hotelId, @PathVariable Long roomTypeId, @Valid @RequestBody UpdateRoomTypeRequestDTO updateRoomTypeDTO) {
+        logger.info("Actualizando tipo de habitación con ID: {} para hotel ID: {}", roomTypeId, hotelId);
+        
+        RoomType updatedRoomType = hotelService.updateRoomTypeFromDTO(hotelId, roomTypeId, updateRoomTypeDTO)
+                .orElseThrow(() -> new ResourceNotFoundException("Tipo de habitación", "id", roomTypeId));
+        
+        RoomTypeResponseDTO roomTypeDTO = convertToRoomTypeResponseDTO(updatedRoomType);
+        
+        logger.info("Tipo de habitación actualizado exitosamente: {}", updatedRoomType.getName());
+        return ResponseEntity.ok(roomTypeDTO);
+    }
+
+    /**
+     * Elimina un tipo de habitación (solo para administradores).
+     * 
+     * @param hotelId ID del hotel
+     * @param roomTypeId ID del tipo de habitación a eliminar
+     * @return ResponseEntity con mensaje de confirmación
+     */
+    @DeleteMapping("/{hotelId}/room-types/{roomTypeId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> deleteRoomType(@PathVariable Long hotelId, @PathVariable Long roomTypeId) {
+        logger.info("Eliminando tipo de habitación con ID: {} del hotel ID: {}", roomTypeId, hotelId);
+        
+        boolean deleted = hotelService.deleteRoomType(hotelId, roomTypeId);
+        if (!deleted) {
+            throw new ResourceNotFoundException("Tipo de habitación", "id", roomTypeId);
+        }
+        
+        logger.info("Tipo de habitación eliminado exitosamente con ID: {}", roomTypeId);
+        return ResponseEntity.ok("Tipo de habitación eliminado exitosamente");
+    }
+
+    /**
      * Convierte una entidad Hotel a HotelResponseDTO.
      * 
      * @param hotel Entidad Hotel
@@ -342,6 +442,8 @@ public class HotelController {
         dto.setRating(hotel.getRating()); // Mapear el rating del hotel
         // Mapear el campo basePrice de la entidad Hotel
         dto.setBasePrice(hotel.getBasePrice());
+        // Mapear el campo isActive del hotel
+        dto.setIsActive(hotel.getIsActive());
         // Convertir List<String> a String - utilizando String.join
         dto.setAmenities(hotel.getAmenities() != null ? String.join(", ", hotel.getAmenities()) : null);
         dto.setImageUrl(hotel.getImageUrl());
@@ -418,6 +520,7 @@ public class HotelController {
         dto.setImageUrl(null);
         dto.setTotalRooms(roomType.getTotalRooms());
         dto.setAvailableRooms(roomType.getAvailableRooms());
+        dto.setIsActive(roomType.getIsActive());
 
         return dto;
 

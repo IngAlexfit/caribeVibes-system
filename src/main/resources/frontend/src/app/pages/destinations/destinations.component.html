@@ -145,7 +145,7 @@
                       <small class="text-muted">Enero - Mayo</small>
                     </div>
                     <div class="text-end">
-                      <h5 class="mb-0 text-success">{{ selectedDestination.lowSeasonPrice | currency:'USD':'symbol':'1.0-0' }}</h5>
+                      <h5 class="mb-0 text-success">{{ selectedDestination.lowSeasonPrice | currency:'COP':'symbol':'1.0-0' }}</h5>
                     </div>
                   </div>
                 </div>
@@ -158,12 +158,12 @@
                       <small class="text-muted">Junio - Diciembre</small>
                     </div>
                     <div class="text-end">
-                      <h5 class="mb-0 text-primary">{{ selectedDestination.highSeasonPrice | currency:'USD':'symbol':'1.0-0' }}</h5>
+                      <h5 class="mb-0 text-primary">{{ selectedDestination.highSeasonPrice | currency:'COP':'symbol':'1.0-0' }}</h5>
                     </div>
                   </div>
                 </div>
 
-                <div class="d-grid gap-2">
+                <div class="d-grid gap-2" *ngIf="selectedDestination">
                   <button class="btn btn-primary btn-lg" (click)="bookDestinationDirect(selectedDestination.id)">
                     Reservar Ahora
                   </button>

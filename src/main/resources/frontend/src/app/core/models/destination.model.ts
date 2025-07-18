@@ -103,6 +103,12 @@ export interface DestinationResponse {
   location?: string;
   /** @property {string} [category] - Categoría del destino (playa, montaña, etc.) (opcional) */
   category?: string;
+  /** @property {string} country - Código del país del destino */
+  country: string;
+  /** @property {string} [countryName] - Nombre del país del destino (viene del backend) */
+  countryName?: string;
+  /** @property {boolean} [active] - Estado del destino (activo o inactivo) */
+  active?: boolean;
   /** @property {string} imageUrl - URL de la imagen principal del destino */
   imageUrl: string;
   /** @property {string[]} tags - Etiquetas o palabras clave asociadas al destino */

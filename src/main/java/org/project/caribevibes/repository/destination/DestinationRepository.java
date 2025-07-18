@@ -1,6 +1,8 @@
 package org.project.caribevibes.repository.destination;
 
 import org.project.caribevibes.entity.destination.Destination;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -23,6 +25,15 @@ import java.util.Optional;
  */
 @Repository
 public interface DestinationRepository extends JpaRepository<Destination, Long> {
+
+    /**
+     * Obtiene todos los destinos con la información del país incluida
+     * Para evitar problemas de lazy loading en el país
+     * 
+     * @return Lista de destinos con información del país
+     */
+    @Query("SELECT d FROM Destination d LEFT JOIN FETCH d.country")
+    List<Destination> findAllWithCountry();
 
     /**
      * Busca un destino por su slug único
@@ -164,5 +175,44 @@ public interface DestinationRepository extends JpaRepository<Destination, Long> 
      */
     @Query(value = "SELECT * FROM destinations d WHERE JSON_CONTAINS(d.experiences, :experienceSlug)", nativeQuery = true)
     List<Destination> findByExperiences_Slug(@Param("experienceSlug") String experienceSlug);
+
+    /**
+     * Busca un destino activo por su slug único
+     * 
+     * @param slug Identificador único del destino
+     * @return Optional con el destino encontrado o vacío si no existe o está inactivo
+     */
+    Optional<Destination> findBySlugAndIsActiveTrue(String slug);
+
+    /**
+     * Obtiene todos los destinos activos
+     * 
+     * @return Lista de destinos activos
+     */
+    List<Destination> findByIsActiveTrue();
+
+    /**
+     * Busca destinos activos por nombre (búsqueda parcial, sin distinción de mayúsculas)
+     * 
+     * @param name Nombre o parte del nombre del destino
+     * @return Lista de destinos activos que coinciden con el nombre
+     */
+    List<Destination> findByNameContainingIgnoreCaseAndIsActiveTrue(String name);
+
+    /**
+     * Cuenta el número total de destinos activos
+     * 
+     * @return Número total de destinos activos en el sistema
+     */
+    long countByIsActiveTrue();
+
+    /**
+     * Obtiene todos los destinos activos con paginación
+     * 
+     * @param pageable Configuración de paginación
+     * @return Página de destinos activos
+     */
+    @Query("SELECT d FROM Destination d WHERE d.isActive = true")
+    Page<Destination> findActiveDestinations(Pageable pageable);
 
 }

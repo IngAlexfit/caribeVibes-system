@@ -116,6 +116,13 @@ public class Destination {
     private LocalDateTime createdAt;
 
     /**
+     * Indica si el destino está activo o desactivado
+     */
+    @Column(name = "is_active", nullable = false)
+    @Builder.Default
+    private Boolean isActive = true;
+
+    /**
      * Precio base durante temporada baja
      */
     @Column(name = "low_season_price", precision = 10, scale = 2)

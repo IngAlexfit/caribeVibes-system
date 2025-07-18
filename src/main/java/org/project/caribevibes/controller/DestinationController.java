@@ -1,5 +1,7 @@
 package org.project.caribevibes.controller;
 
+import org.project.caribevibes.dto.request.CreateDestinationRequestDTO;
+import org.project.caribevibes.dto.request.UpdateDestinationRequestDTO;
 import org.project.caribevibes.dto.response.DestinationResponseDTO;
 import org.project.caribevibes.entity.destination.Destination;
 import org.project.caribevibes.entity.destination.Activity;
@@ -16,6 +18,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 import java.util.Map;
@@ -41,6 +44,33 @@ public class DestinationController {
 
     @Autowired
     private org.project.caribevibes.repository.destination.DestinationRepository destinationRepository;
+
+    /**
+     * Obtiene todos los destinos para administración (incluye activos e inactivos).
+     * 
+     * @param page Número de página (default: 0)
+     * @param size Tamaño de página (default: 10)
+     * @param sortBy Campo de ordenamiento (default: name)
+     * @param sortDir Dirección de ordenamiento (default: asc)
+     * @return ResponseEntity con página de destinos
+     */
+    @GetMapping("/admin")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Page<DestinationResponseDTO>> getAllDestinationsForAdmin(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "name") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir) {
+
+        logger.debug("Obteniendo destinos para administración - página: {}, tamaño: {}, ordenar por: {}, dirección: {}", 
+                    page, size, sortBy, sortDir);
+
+        // Para administradores, obtenemos todos los destinos (activos e inactivos)
+        Page<DestinationResponseDTO> destinations = destinationService.getAllDestinationsForAdmin(page, size, sortBy, sortDir);
+        
+        logger.debug("Retornando {} destinos de {} total para administración", destinations.getNumberOfElements(), destinations.getTotalElements());
+        return ResponseEntity.ok(destinations);
+    }
 
     /**
      * Obtiene todos los destinos activos con paginación.
@@ -268,37 +298,61 @@ public class DestinationController {
     /**
      * Crea un nuevo destino (solo para administradores).
      * 
-     * @param destination Datos del destino a crear
+     * @param createDestinationDTO Datos del destino a crear
      * @return ResponseEntity con el destino creado
      */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Destination> createDestination(@RequestBody Destination destination) {
-        logger.info("Creando nuevo destino: {}", destination.getName());
+    public ResponseEntity<DestinationResponseDTO> createDestination(@Valid @RequestBody CreateDestinationRequestDTO createDestinationDTO) {
+        logger.info("Creando nuevo destino: {}", createDestinationDTO.getName());
         
-        Destination createdDestination = destinationService.createDestination(destination);
+        Destination createdDestination = destinationService.createDestinationFromDTO(createDestinationDTO);
+        DestinationResponseDTO destinationDTO = destinationService.convertToDestinationDTO(createdDestination);
         
         logger.info("Destino creado exitosamente con ID: {}", createdDestination.getId());
-        return ResponseEntity.status(201).body(createdDestination);
+        return ResponseEntity.status(201).body(destinationDTO);
     }
 
     /**
      * Actualiza un destino existente (solo para administradores).
      * 
      * @param id ID del destino a actualizar
-     * @param destination Datos actualizados del destino
+     * @param updateDestinationDTO Datos actualizados del destino
      * @return ResponseEntity con el destino actualizado
      */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Destination> updateDestination(@PathVariable Long id, @RequestBody Destination destination) {
+    public ResponseEntity<DestinationResponseDTO> updateDestination(@PathVariable Long id, @Valid @RequestBody UpdateDestinationRequestDTO updateDestinationDTO) {
         logger.info("Actualizando destino con ID: {}", id);
         
-        Destination updatedDestination = destinationService.updateDestination(id, destination)
+        Destination updatedDestination = destinationService.updateDestinationFromDTO(id, updateDestinationDTO)
                 .orElseThrow(() -> new ResourceNotFoundException("Destino", "id", id));
         
+        DestinationResponseDTO destinationDTO = destinationService.convertToDestinationDTO(updatedDestination);
+        
         logger.info("Destino actualizado exitosamente: {}", updatedDestination.getName());
-        return ResponseEntity.ok(updatedDestination);
+        return ResponseEntity.ok(destinationDTO);
+    }
+
+    /**
+     * Actualiza un destino existente por la ruta admin (solo para administradores).
+     * 
+     * @param id ID del destino a actualizar
+     * @param updateDestinationDTO Datos actualizados del destino
+     * @return ResponseEntity con el destino actualizado
+     */
+    @PutMapping("/admin/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<DestinationResponseDTO> updateDestinationAdmin(@PathVariable Long id, @Valid @RequestBody UpdateDestinationRequestDTO updateDestinationDTO) {
+        logger.info("Actualizando destino via admin con ID: {}", id);
+        
+        Destination updatedDestination = destinationService.updateDestinationFromDTO(id, updateDestinationDTO)
+                .orElseThrow(() -> new ResourceNotFoundException("Destino", "id", id));
+        
+        DestinationResponseDTO destinationDTO = destinationService.convertToDestinationDTO(updatedDestination);
+        
+        logger.info("Destino actualizado exitosamente via admin: {}", updatedDestination.getName());
+        return ResponseEntity.ok(destinationDTO);
     }
 
     /**
@@ -322,6 +376,26 @@ public class DestinationController {
     }
 
     /**
+     * Desactiva un destino por la ruta admin (solo para administradores).
+     * 
+     * @param id ID del destino a desactivar
+     * @return ResponseEntity con mensaje de confirmación
+     */
+    @DeleteMapping("/admin/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> deactivateDestinationAdmin(@PathVariable Long id) {
+        logger.info("Desactivando destino via admin con ID: {}", id);
+        
+        boolean deactivated = destinationService.deactivateDestination(id);
+        if (!deactivated) {
+            throw new ResourceNotFoundException("Destino", "id", id);
+        }
+        
+        logger.info("Destino desactivado exitosamente via admin con ID: {}", id);
+        return ResponseEntity.ok("Destino desactivado exitosamente");
+    }
+
+    /**
      * Endpoint de salud para verificar que el servicio de destinos está funcionando.
      * 
      * @return ResponseEntity con el estado del servicio
@@ -334,5 +408,27 @@ public class DestinationController {
             "message", "Servicio de destinos funcionando correctamente"
         );
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Convierte una entidad Destination a DestinationResponseDTO.
+     * 
+     * @param destination Entidad Destination
+     * @return DestinationResponseDTO
+     */
+    private DestinationResponseDTO convertToDestinationResponseDTO(Destination destination) {
+        DestinationResponseDTO dto = new DestinationResponseDTO();
+        dto.setId(destination.getId());
+        dto.setSlug(destination.getSlug());
+        dto.setName(destination.getName());
+        dto.setDescription(destination.getDescription());
+        dto.setLongDescription(destination.getLongDescription());
+        dto.setLocation(destination.getLocation());
+        dto.setImageUrl(destination.getImageUrl());
+        dto.setTags(destination.getTags());
+        dto.setLowSeasonPrice(destination.getLowSeasonPrice());
+        dto.setHighSeasonPrice(destination.getHighSeasonPrice());
+        dto.setCreatedAt(destination.getCreatedAt());
+        return dto;
     }
 }
