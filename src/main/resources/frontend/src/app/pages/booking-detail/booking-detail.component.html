@@ -106,7 +106,7 @@
               <h4>{{ booking.hotel.name || 'Hotel no especificado' }}</h4>
               <p class="hotel-location">
                 <i class="fas fa-map-marker-alt"></i>
-                {{ booking.hotel.location || 'Ubicación no especificada' }}
+                {{ (booking.hotel.destination?.name ? booking.hotel.destination?.name + ', ' : '') + (booking.hotel.destination?.location || 'Ubicación no especificada') }}
               </p>
               <div class="hotel-rating" *ngIf="booking.hotel.rating">
                 <div class="stars">

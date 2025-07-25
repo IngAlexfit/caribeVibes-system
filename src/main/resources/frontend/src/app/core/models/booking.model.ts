@@ -109,13 +109,27 @@ export interface Hotel {
   id: number;
   /** @property {string} name - Nombre del hotel */
   name: string;
-  /** @property {string} location - Ubicación del hotel */
-  location: string;
+  /** @property {string} location - Ubicación del hotel (legacy, usar destination.location) */
+  location?: string;
   /** @property {string} [imageUrl] - URL de la imagen del hotel */
   imageUrl?: string;
   /** @property {number} [rating] - Calificación del hotel */
   rating?: number;
+  /** @property {DestinationBasicDTO} [destination] - Destino del hotel */
+  destination?: DestinationBasicDTO;
 }
+
+ /**
+  * @interface DestinationBasicDTO
+  * @description Define los datos básicos de un destino para hotel
+  */
+ export interface DestinationBasicDTO {
+   id: number;
+   name: string;
+   location: string;
+   imageUrl?: string;
+   country?: any;
+ }
 
 /**
  * @interface RoomType

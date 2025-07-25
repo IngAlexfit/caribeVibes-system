@@ -445,7 +445,19 @@ public class BookingController {
             hotelDTO.setId(booking.getHotel().getId());
             hotelDTO.setName(booking.getHotel().getName());
             hotelDTO.setStars(booking.getHotel().getStars());
-            hotelDTO.setImageUrl(booking.getHotel().getImageUrl()); // Corrected method name
+            hotelDTO.setImageUrl(booking.getHotel().getImageUrl());
+            // Mapear destino correctamente
+            if (booking.getHotel().getDestination() != null) {
+                var dest = booking.getHotel().getDestination();
+                org.project.caribevibes.dto.response.DestinationBasicDTO destDTO = new org.project.caribevibes.dto.response.DestinationBasicDTO();
+                destDTO.setId(dest.getId());
+                destDTO.setName(dest.getName());
+                destDTO.setLocation(dest.getLocation());
+                // Si tienes country y imageUrl en entity, mapea también:
+                try { destDTO.setImageUrl(dest.getImageUrl()); } catch(Exception ignore){}
+                try { destDTO.setCountry(null); } catch(Exception ignore){} // Ajusta si tienes country
+                hotelDTO.setDestination(destDTO);
+            }
             dto.setHotel(hotelDTO);
         }
         
