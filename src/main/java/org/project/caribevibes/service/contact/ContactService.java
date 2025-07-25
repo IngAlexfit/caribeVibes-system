@@ -1,7 +1,9 @@
 package org.project.caribevibes.service.contact;
 
+import org.project.caribevibes.dto.request.ContactReplyRequestDTO;
 import org.project.caribevibes.entity.contact.Contact;
 import org.project.caribevibes.repository.contact.ContactRepository;
+import org.project.caribevibes.service.email.EmailService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Servicio para la gestión de mensajes de contacto.
@@ -36,6 +39,9 @@ public class ContactService {
 
     @Autowired
     private ContactRepository contactRepository;
+
+    @Autowired
+    private EmailService emailService;
 
     /**
      * Obtiene todos los mensajes de contacto activos paginados.
@@ -365,5 +371,78 @@ public class ContactService {
     public long countContactsByStatus(Contact.ContactStatus status) {
         logger.debug("Contando mensajes con estado: {}", status);
         return contactRepository.countByStatusAndActiveTrue(status);
+    }
+
+    /**
+     * Responde a un mensaje de contacto enviando un email y marcándolo como respondido.
+     * 
+     * @param id ID del mensaje de contacto
+     * @param replyRequest DTO con la información de la respuesta
+     * @return true si se envió la respuesta exitosamente, false si no existe el contacto
+     * @throws RuntimeException si ocurre un error al enviar el email
+     */
+    public boolean replyToContact(Long id, ContactReplyRequestDTO replyRequest) {
+        logger.info("Respondiendo a mensaje de contacto con ID: {}", id);
+        
+        return contactRepository.findByIdAndActiveTrue(id)
+                .map(contact -> {
+                    try {
+                        // Preparar datos para el email
+                        String adminName = replyRequest.getAdminName() != null && !replyRequest.getAdminName().trim().isEmpty() 
+                                         ? replyRequest.getAdminName() 
+                                         : "Equipo de Caribe Vibes";
+                        
+                        // Enviar email de respuesta y esperar el resultado
+                        CompletableFuture<Boolean> emailResult = emailService.sendContactReply(
+                            contact.getEmail(),
+                            contact.getName(),
+                            contact.getSubject(),
+                            replyRequest.getReplyMessage(),
+                            adminName
+                        );
+                        
+                        // Esperar a que se complete el envío de email (máximo 10 segundos)
+                        Boolean emailSent = emailResult.get(10, java.util.concurrent.TimeUnit.SECONDS);
+                        
+                        if (!emailSent) {
+                            throw new RuntimeException("Error al enviar el email de respuesta");
+                        }
+                        
+                        // Solo marcar como respondido si el email se envió exitosamente
+                        contact.setStatus(Contact.ContactStatus.RESPONDED);
+                        contact.setResponseMessage(replyRequest.getReplyMessage());
+                        contact.setRespondedAt(LocalDateTime.now());
+                        contactRepository.save(contact);
+                        
+                        // Enviar copia al admin si se solicita
+                        if (replyRequest.isSendCopyToAdmin()) {
+                            try {
+                                emailService.sendAdminNotification(
+                                    "Respuesta enviada - Contacto #" + id,
+                                    String.format("Se ha enviado una respuesta al contacto:\n\n" +
+                                                "Cliente: %s (%s)\n" +
+                                                "Asunto Original: %s\n" +
+                                                "Mensaje Original: %s\n\n" +
+                                                "Respuesta Enviada:\n%s\n\n" +
+                                                "Respondido por: %s",
+                                                contact.getName(), contact.getEmail(),
+                                                contact.getSubject(), contact.getMessage(),
+                                                replyRequest.getReplyMessage(), adminName)
+                                );
+                            } catch (Exception e) {
+                                logger.warn("No se pudo enviar la copia al admin: {}", e.getMessage());
+                                // No fallar la operación principal por esto
+                            }
+                        }
+                        
+                        logger.info("Respuesta enviada exitosamente al contacto: {}", contact.getEmail());
+                        return true;
+                        
+                    } catch (Exception e) {
+                        logger.error("Error al enviar respuesta al contacto con ID {}: {}", id, e.getMessage(), e);
+                        throw new RuntimeException("Error al enviar la respuesta por email: " + e.getMessage(), e);
+                    }
+                })
+                .orElse(false);
     }
 }

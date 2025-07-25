@@ -28,6 +28,21 @@ spring:
     validate-on-migrate: true
     baseline-version: 0
     
+  # Configuración de Email SMTP (Maileroo)
+  mail:
+    host: ${MAIL_HOST:smtp.maileroo.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME_CARIBE_VIBES:your-username}
+    password: ${MAIL_PASSWORD_CARIBE_VIBES:your-password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          ssl:
+            trust: smtp.maileroo.com
+    
   # Configuración de seguridad
   security:
     jwt:
@@ -61,3 +76,7 @@ app:
     logo-path: static/images/logo.png
   upload:
     path: ${UPLOAD_PATH:uploads/}
+  email:
+    from: ${EMAIL_FROM_CARIBE_VIBES:your-email@domain.com}
+    from-name: ${EMAIL_FROM_NAME:Caribe Vibes Support}
+    admin-email: ${ADMIN_EMAIL_CARIBE_VIBES:your-admin@domain.com}

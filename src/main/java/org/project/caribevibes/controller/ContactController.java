@@ -1,8 +1,10 @@
 package org.project.caribevibes.controller;
 
+import org.project.caribevibes.dto.request.ContactReplyRequestDTO;
 import org.project.caribevibes.dto.request.ContactRequestDTO;
 import org.project.caribevibes.entity.contact.Contact;
 import org.project.caribevibes.service.contact.ContactService;
+import org.project.caribevibes.service.email.EmailService;
 import org.project.caribevibes.exception.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +39,9 @@ public class ContactController {
 
     @Autowired
     private ContactService contactService;
+
+    @Autowired
+    private EmailService emailService;
 
     /**
      * Crea un nuevo mensaje de contacto (público).
@@ -247,6 +252,51 @@ public class ContactController {
     }
 
     /**
+     * Responde a un mensaje de contacto enviando un email (solo para administradores).
+     * 
+     * @param id ID del mensaje de contacto
+     * @param replyRequest DTO con la información de la respuesta
+     * @return ResponseEntity con confirmación de respuesta
+     */
+    @PutMapping("/{id}/send-reply")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Object>> sendReplyToContact(
+            @PathVariable Long id,
+            @Valid @RequestBody ContactReplyRequestDTO replyRequest) {
+        
+        logger.info("Enviando respuesta por email a mensaje de contacto con ID: {}", id);
+        
+        try {
+            boolean replied = contactService.replyToContact(id, replyRequest);
+            if (!replied) {
+                throw new ResourceNotFoundException("Mensaje de contacto", "id", id);
+            }
+            
+            Map<String, Object> response = Map.of(
+                "message", "Respuesta enviada exitosamente por email",
+                "status", "REPLIED",
+                "emailSent", true,
+                "adminCopySent", replyRequest.isSendCopyToAdmin()
+            );
+            
+            logger.info("Respuesta por email enviada exitosamente para mensaje ID: {}", id);
+            return ResponseEntity.ok(response);
+            
+        } catch (RuntimeException e) {
+            logger.error("Error al enviar respuesta por email para mensaje ID {}: {}", id, e.getMessage());
+            
+            Map<String, Object> errorResponse = Map.of(
+                "message", "Error al enviar la respuesta por email",
+                "error", e.getMessage(),
+                "status", "ERROR",
+                "emailSent", false
+            );
+            
+            return ResponseEntity.status(500).body(errorResponse);
+        }
+    }
+
+    /**
      * Marca un mensaje como leído (solo para administradores).
      * 
      * @param id ID del mensaje de contacto
@@ -365,5 +415,124 @@ public class ContactController {
             "message", "Servicio de contacto funcionando correctamente"
         );
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Prueba la configuración SMTP enviando un email de prueba de forma asíncrona.
+     * 
+     * @param testRequest Datos para el email de prueba
+     * @return ResponseEntity con confirmación inmediata del envío
+     */
+    @PostMapping("/test-email")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Object>> testEmailConfiguration(
+            @RequestBody Map<String, String> testRequest) {
+        
+        String testEmail = testRequest.get("email");
+        logger.info("Iniciando prueba de configuración SMTP para email: {}", testEmail);
+        
+        try {
+            // Enviar email de forma asíncrona para respuesta inmediata
+            emailService.sendTestEmailAsync(testEmail);
+            
+            Map<String, Object> response = Map.of(
+                "success", true,
+                "message", "✅ Email de prueba enviado en segundo plano. Revisa tu bandeja en unos segundos.",
+                "testEmail", testEmail,
+                "timestamp", System.currentTimeMillis(),
+                "note", "El envío es asíncrono - revisa los logs para confirmar el resultado"
+            );
+            
+            logger.info("Prueba de email iniciada exitosamente para: {}", testEmail);
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("Error al iniciar prueba de configuración SMTP: {}", e.getMessage(), e);
+            
+            // Determinar el tipo específico de error
+            String errorMessage;
+            String errorType;
+            
+            if (e.getMessage().contains("Authentication failed") || e.getMessage().contains("535")) {
+                errorMessage = "❌ Error de autenticación SMTP. Verifica tus credenciales de Maileroo";
+                errorType = "AUTHENTICATION_ERROR";
+            } else if (e.getMessage().contains("Connection refused") || e.getMessage().contains("connect")) {
+                errorMessage = "❌ No se pudo conectar al servidor SMTP. Verifica tu conexión a internet";
+                errorType = "CONNECTION_ERROR";
+            } else if (e.getMessage().contains("timeout")) {
+                errorMessage = "❌ Timeout en la conexión SMTP. El servidor tardó demasiado en responder";
+                errorType = "TIMEOUT_ERROR";
+            } else {
+                errorMessage = "❌ Error SMTP: " + e.getMessage();
+                errorType = "GENERAL_ERROR";
+            }
+            
+            Map<String, Object> errorResponse = Map.of(
+                "success", false,
+                "message", errorMessage,
+                "errorType", errorType,
+                "originalError", e.getMessage(),
+                "testEmail", testEmail,
+                "timestamp", System.currentTimeMillis(),
+                "solution", errorType.equals("AUTHENTICATION_ERROR") ? 
+                    "Verifica las credenciales en application.yml" :
+                    "Verifica tu conexión y configuración SMTP"
+            );
+            
+            return ResponseEntity.status(500).body(errorResponse);
+        }
+    }
+
+    /**
+     * Endpoint de diagnóstico para verificar la configuración SMTP actual.
+     * 
+     * @return ResponseEntity con la configuración SMTP actual (sin passwords)
+     */
+    @GetMapping("/smtp-config")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Object>> getSmtpConfiguration() {
+        logger.info("Obteniendo configuración SMTP actual");
+        
+        try {
+            // Verificar variables de entorno directamente
+            String envMailUsername = System.getenv("MAIL_USERNAME");
+            String envMailPassword = System.getenv("MAIL_PASSWORD");
+            String envEmailFrom = System.getenv("EMAIL_FROM");
+            String envAdminEmail = System.getenv("ADMIN_EMAIL");
+            
+            Map<String, Object> config = Map.of(
+                "smtp", Map.of(
+                    "host", "smtp.maileroo.com",
+                    "port", 587,
+                    "username", envMailUsername != null ? envMailUsername : "NOT_SET",
+                    "hasPassword", envMailPassword != null && !envMailPassword.isEmpty()
+                ),
+                "email", Map.of(
+                    "from", envEmailFrom != null ? envEmailFrom : "noreply@caribevibes.com (DEFAULT)",
+                    "adminEmail", envAdminEmail != null ? envAdminEmail : "admin@caribevibes.com (DEFAULT)"
+                ),
+                "environment", Map.of(
+                    "MAIL_USERNAME", envMailUsername != null ? envMailUsername : "❌ NOT_SET",
+                    "MAIL_PASSWORD", envMailPassword != null ? "✅ SET" : "❌ NOT_SET",
+                    "EMAIL_FROM", envEmailFrom != null ? envEmailFrom : "❌ NOT_SET (usando default)",
+                    "ADMIN_EMAIL", envAdminEmail != null ? envAdminEmail : "❌ NOT_SET (usando default)"
+                ),
+                "recommendation", "Si EMAIL_FROM no está configurado, usa el mismo email que MAIL_USERNAME",
+                "timestamp", System.currentTimeMillis()
+            );
+            
+            return ResponseEntity.ok(config);
+            
+        } catch (Exception e) {
+            logger.error("Error al obtener configuración SMTP: {}", e.getMessage(), e);
+            
+            Map<String, Object> errorResponse = Map.of(
+                "success", false,
+                "message", "Error al obtener configuración SMTP",
+                "error", e.getMessage()
+            );
+            
+            return ResponseEntity.status(500).body(errorResponse);
+        }
     }
 }

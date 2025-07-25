@@ -21,6 +21,18 @@ export interface Contact {
   createdAt: Date;
   /** @property {Date} [updatedAt] - Fecha de última actualización (opcional) */
   updatedAt?: Date;
+  /** @property {Date} [respondedAt] - Fecha de respuesta (opcional) */
+  respondedAt?: Date;
+  /** @property {string} [respondedBy] - Quién respondió (opcional) */
+  respondedBy?: string;
+  /** @property {string} [responseMessage] - Mensaje de respuesta (opcional) */
+  responseMessage?: string;
+  /** @property {string} [inquiryType] - Tipo de consulta (opcional) */
+  inquiryType?: string;
+  /** @property {boolean} active - Si el mensaje está activo */
+  active: boolean;
+  /** @property {string} [summary] - Resumen del mensaje (opcional) */
+  summary?: string;
 }
 
 /**
@@ -36,6 +48,8 @@ export interface ContactRequest {
   subject: string;
   /** @property {string} message - Contenido del mensaje */
   message: string;
+  /** @property {string} [phone] - Teléfono de contacto (opcional) */
+  phone?: string;
 }
 
 /**
@@ -47,9 +61,15 @@ export enum ContactStatus {
   NEW = 'NEW',
   /** Mensaje que ha sido leído pero no respondido */
   READ = 'READ',
+  /** Mensaje en proceso de respuesta */
+  IN_PROGRESS = 'IN_PROGRESS',
   /** Mensaje que ha sido respondido */
-  REPLIED = 'REPLIED'
+  RESPONDED = 'RESPONDED',
+  /** Mensaje cerrado */
+  CLOSED = 'CLOSED'
 }
+
+
 
 /**
  * @interface ApiResponse<T>
@@ -112,4 +132,30 @@ export interface PageResponse<T> {
   last: boolean;
   /** @property {boolean} empty - Indica si la página está vacía */
   empty: boolean;
+}
+
+/**
+ * @interface EmailReplyRequest
+ * @description Interfaz para el request de respuesta por email
+ */
+export interface EmailReplyRequest {
+  /** @property {string} replyMessage - Mensaje de respuesta */
+  replyMessage: string;
+  /** @property {string} [adminName] - Nombre del administrador que responde */
+  adminName?: string;
+  /** @property {boolean} [sendCopyToAdmin] - Si enviar copia al admin */
+  sendCopyToAdmin?: boolean;
+}
+
+/**
+ * @interface EmailReplyResponse
+ * @description Interfaz para la respuesta del email reply
+ */
+export interface EmailReplyResponse {
+  /** @property {boolean} success - Si el email se envió exitosamente */
+  success: boolean;
+  /** @property {string} message - Mensaje de respuesta */
+  message: string;
+  /** @property {boolean} [adminCopySent] - Si se envió copia al admin */
+  adminCopySent?: boolean;
 }

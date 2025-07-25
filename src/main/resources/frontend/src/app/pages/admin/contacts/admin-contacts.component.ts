@@ -82,6 +82,12 @@ export class AdminContactsComponent implements OnInit, OnDestroy {
   /** @property {string} replyText - Texto de respuesta */
   replyText = '';
 
+  /** @property {string} adminName - Nombre del administrador */
+  adminName = '';
+
+  /** @property {boolean} sendCopyToAdmin - Enviar copia al admin */
+  sendCopyToAdmin = false;
+
   /** @property {ContactStatus} ContactStatus - Enum de estados para uso en template */
   ContactStatus = ContactStatus;
 
@@ -300,11 +306,11 @@ export class AdminContactsComponent implements OnInit, OnDestroy {
           // Actualizar el estado del contacto
           const contactIndex = this.contacts.findIndex(c => c.id === contactId);
           if (contactIndex !== -1) {
-            this.contacts[contactIndex].status = ContactStatus.REPLIED;
+            this.contacts[contactIndex].status = ContactStatus.RESPONDED;
           }
 
           if (this.selectedContact && this.selectedContact.id === contactId) {
-            this.selectedContact.status = ContactStatus.REPLIED;
+            this.selectedContact.status = ContactStatus.RESPONDED;
           }
 
           this.replyText = '';
@@ -331,6 +337,76 @@ export class AdminContactsComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * @method sendEmailReply
+   * @description Envía una respuesta por email a un contacto
+   * @param {number} contactId - ID del contacto
+   */
+  sendEmailReply(contactId: number): void {
+    if (!this.replyText.trim()) {
+      Swal.fire({
+        title: 'Error',
+        text: 'Por favor escriba una respuesta.',
+        icon: 'warning'
+      });
+      return;
+    }
+
+    this.isLoadingAction = true;
+
+    const replyData = {
+      replyMessage: this.replyText,
+      adminName: this.adminName.trim() || 'Equipo de Caribe Vibes',
+      sendCopyToAdmin: this.sendCopyToAdmin
+    };
+
+    this.contactService.sendEmailReply(contactId, replyData)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          // Actualizar el estado del contacto
+          const contactIndex = this.contacts.findIndex(c => c.id === contactId);
+          if (contactIndex !== -1) {
+            this.contacts[contactIndex].status = ContactStatus.RESPONDED;
+          }
+
+          if (this.selectedContact && this.selectedContact.id === contactId) {
+            this.selectedContact.status = ContactStatus.RESPONDED;
+          }
+
+          this.replyText = '';
+          this.adminName = '';
+          this.sendCopyToAdmin = false;
+          this.isLoadingAction = false;
+
+          let successMessage = 'La respuesta ha sido enviada por email exitosamente.';
+          if (response.adminCopySent) {
+            successMessage += ' Se envió una copia al administrador.';
+          }
+
+          Swal.fire({
+            title: 'Email enviado',
+            text: successMessage,
+            icon: 'success'
+          });
+
+          this.loadStatistics();
+        },
+        error: (error) => {
+          console.error('Error enviando email:', error);
+          this.isLoadingAction = false;
+          
+          const errorMessage = error.error?.error || 'No se pudo enviar el email. Intente nuevamente.';
+          
+          Swal.fire({
+            title: 'Error al enviar email',
+            text: errorMessage,
+            icon: 'error'
+          });
+        }
+      });
+  }
+
+  /**
    * @method sendAutoReply
    * @description Envía una respuesta automática
    * @param {number} contactId - ID del contacto
@@ -346,11 +422,11 @@ export class AdminContactsComponent implements OnInit, OnDestroy {
           // Actualizar el estado del contacto
           const contactIndex = this.contacts.findIndex(c => c.id === contactId);
           if (contactIndex !== -1) {
-            this.contacts[contactIndex].status = ContactStatus.REPLIED;
+            this.contacts[contactIndex].status = ContactStatus.RESPONDED;
           }
 
           if (this.selectedContact && this.selectedContact.id === contactId) {
-            this.selectedContact.status = ContactStatus.REPLIED;
+            this.selectedContact.status = ContactStatus.RESPONDED;
           }
 
           this.isLoadingAction = false;
@@ -436,8 +512,12 @@ export class AdminContactsComponent implements OnInit, OnDestroy {
         return 'badge bg-warning';
       case ContactStatus.READ:
         return 'badge bg-info';
-      case ContactStatus.REPLIED:
+      case ContactStatus.IN_PROGRESS:
+        return 'badge bg-primary';
+      case ContactStatus.RESPONDED:
         return 'badge bg-success';
+      case ContactStatus.CLOSED:
+        return 'badge bg-dark';
       default:
         return 'badge bg-secondary';
     }
@@ -455,8 +535,12 @@ export class AdminContactsComponent implements OnInit, OnDestroy {
         return 'Nuevo';
       case ContactStatus.READ:
         return 'Leído';
-      case ContactStatus.REPLIED:
+      case ContactStatus.IN_PROGRESS:
+        return 'En Proceso';
+      case ContactStatus.RESPONDED:
         return 'Respondido';
+      case ContactStatus.CLOSED:
+        return 'Cerrado';
       default:
         return 'Desconocido';
     }

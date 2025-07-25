@@ -148,6 +148,17 @@ export class ContactService {
   }
 
   /**
+   * @method sendEmailReply
+   * @description Envía una respuesta por email a un mensaje de contacto
+   * @param {number} id - ID del mensaje
+   * @param {any} replyData - Datos de la respuesta (replyMessage, adminName, sendCopyToAdmin)
+   * @returns {Observable<any>} Observable con la respuesta del servidor
+   */
+  sendEmailReply(id: number, replyData: any): Observable<any> {
+    return this.http.put(`${this.API_URL}/${id}/send-reply`, replyData);
+  }
+
+  /**
    * @method markAsRead
    * @description Marca un mensaje de contacto como leído
    * @param {number} id - ID del mensaje
