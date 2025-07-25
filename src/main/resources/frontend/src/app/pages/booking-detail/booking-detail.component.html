@@ -1,6 +1,6 @@
 <div class="booking-detail-container">
   <!-- Loading State -->
-  <div *ngIf="isLoading" class="loading-spinner">
+  <div *ngIf="isLoading" class="loading-container position-fixed w-100 h-100 top-0 start-0" style="z-index: 9999; background: rgba(255,255,255,0.9);">
     <app-loading></app-loading>
   </div>
 
@@ -45,8 +45,14 @@
           class="btn btn-primary" 
           (click)="downloadVoucher()"
           [disabled]="isDownloadingVoucher">
-          <i class="fas fa-download" [class.fa-spin]="isDownloadingVoucher"></i>
-          {{ isDownloadingVoucher ? 'Descargando...' : 'Descargar Voucher' }}
+          <span *ngIf="!isDownloadingVoucher">
+            <i class="fas fa-download me-2"></i>
+            Descargar Voucher
+          </span>
+          <span *ngIf="isDownloadingVoucher">
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            Descargando...
+          </span>
         </button>
       </div>
     </div>
