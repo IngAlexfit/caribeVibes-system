@@ -91,8 +91,9 @@ public class SecurityConfig {
                     "/webjars/**"
                 ).permitAll()
                 
-                // Endpoints de health check
+                // Endpoints de health check y diagnóstico
                 .requestMatchers("/api/health", "/api/actuator/health").permitAll()
+                .requestMatchers("/api/debug/**").permitAll() // Endpoint de diagnóstico
                 
                 // Recursos estáticos del frontend Angular
                 .requestMatchers(
@@ -110,6 +111,22 @@ public class SecurityConfig {
                     "/*.woff2",
                     "/*.ttf",
                     "/*.eot"
+                ).permitAll()
+                
+                // Rutas del frontend Angular (para permitir navegación directa y F5)
+                .requestMatchers(
+                    "/home",
+                    "/destinations",
+                    "/destinations/**",
+                    "/hotels",
+                    "/hotels/**",
+                    "/activities",
+                    "/activities/**",
+                    "/contact",
+                    "/booking/**",
+                    "/admin/**",
+                    "/login",
+                    "/register"
                 ).permitAll()
                 
                 // Endpoints protegidos para usuarios autenticados
