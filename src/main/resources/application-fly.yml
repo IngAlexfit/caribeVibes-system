@@ -4,12 +4,12 @@ spring:
   application:
     name: caribe-vibes-fly
     
-  # Base de datos MySQL
+  # Base de datos PostgreSQL
   datasource:
     url: ${DATABASE_URL_CARIBE_VIBES:jdbc:mysql://database:3306/caribe_vibes}
     username: ${DATABASE_USERNAME_CARIBE_VIBES:user}
     password: ${DATABASE_PASSWORD_CARIBE_VIBES:password}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    driver-class-name: org.postgresql.Driver
     
     # Pool de conexiones optimizado para Fly.io
     hikari:
