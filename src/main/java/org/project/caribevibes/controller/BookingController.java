@@ -29,6 +29,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import org.project.caribevibes.dto.request.AddActivityToBookingRequestDTO;
+
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
@@ -344,19 +346,16 @@ public class BookingController {
      * Agrega una actividad a una reserva.
      * 
      * @param bookingId ID de la reserva
-     * @param activityId ID de la actividad
-     * @param quantity Cantidad de personas para la actividad
+     * @param request DTO con los datos de la actividad
      * @return ResponseEntity con la actividad agregada
      */
     @PostMapping("/{bookingId}/activities")
     @PreAuthorize("hasRole('CLIENT') or hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<BookingActivityResponseDTO> addActivityToBooking(
             @PathVariable Long bookingId,
-            @RequestParam Long activityId,
-            @RequestParam Integer quantity) {
-        
+            @Valid @RequestBody AddActivityToBookingRequestDTO request) {
         logger.info("Agregando actividad ID: {} a reserva ID: {} para {} personas", 
-                   activityId, bookingId, quantity);
+                   request.getActivityId(), bookingId, request.getQuantity());
         
         // Verificar que el usuario puede modificar esta reserva
         Booking booking = bookingService.findBookingById(bookingId)
@@ -371,7 +370,7 @@ public class BookingController {
             throw new ResourceNotFoundException("Reserva", "id", bookingId);
         }
         
-        BookingActivity bookingActivity = bookingService.addActivityToBooking(bookingId, activityId, quantity);
+        BookingActivity bookingActivity = bookingService.addActivityToBooking(bookingId, request.getActivityId(), request.getQuantity());
         BookingActivityResponseDTO activityDTO = convertToBookingActivityResponseDTO(bookingActivity);
         
         logger.info("Actividad agregada exitosamente a reserva ID: {}", bookingId);
