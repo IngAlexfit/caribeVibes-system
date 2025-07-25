@@ -39,7 +39,7 @@ public class AngularRoutingController {
         "/activities",
         "/activities/**",
         "/contact",
-        "/booking/**",
+        "/bookings/**",
         "/admin/**",
         "/login",
         "/register"

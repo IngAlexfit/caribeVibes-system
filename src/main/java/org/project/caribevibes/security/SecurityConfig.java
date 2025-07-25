@@ -123,7 +123,7 @@ public class SecurityConfig {
                     "/activities",
                     "/activities/**",
                     "/contact",
-                    "/booking/**",
+                    "/bookings/**",
                     "/admin/**",
                     "/login",
                     "/register"
