@@ -1,3 +1,15 @@
+# Configuración personalizada de la aplicación
+app:
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:3000,http://localhost:8080}
+  pdf:
+    logo-path: static/images/logo.png
+  upload:
+    path: ${UPLOAD_PATH:uploads/}
+  email:
+    from: ${EMAIL_FROM_CARIBE_VIBES:your-email@domain.com}
+    from-name: ${EMAIL_FROM_NAME:Caribe Vibes Support}
+    admin-email: ${ADMIN_EMAIL_CARIBE_VIBES:your-admin@domain.com}
 # Configuración específica para Fly.io
 # Solo logging a consola, sin archivos de log
 spring:
