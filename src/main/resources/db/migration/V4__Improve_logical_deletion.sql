@@ -111,33 +111,33 @@ SET @sql = (SELECT IF(
     'SELECT "Index idx_experiences_logical_deletion already exists"'));
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
--- 4. Crear vistas para entidades activas (eliminar si existen y recrear)
-DROP VIEW IF EXISTS active_destinations;
+-- 4. Crear vistas para entidades activas 
+
 CREATE VIEW active_destinations AS
 SELECT * FROM destinations 
 WHERE is_active = TRUE AND deleted_at IS NULL;
 
-DROP VIEW IF EXISTS active_hotels;
+
 CREATE VIEW active_hotels AS
 SELECT * FROM hotels 
 WHERE is_active = TRUE AND deleted_at IS NULL;
 
-DROP VIEW IF EXISTS available_activities;
+
 CREATE VIEW available_activities AS
 SELECT * FROM activities 
 WHERE is_available = TRUE AND deleted_at IS NULL;
 
-DROP VIEW IF EXISTS active_countries;
+
 CREATE VIEW active_countries AS
 SELECT * FROM countries 
 WHERE is_active = TRUE AND deleted_at IS NULL;
 
-DROP VIEW IF EXISTS active_experiences;
+
 CREATE VIEW active_experiences AS
 SELECT * FROM experiences 
 WHERE is_active = TRUE AND deleted_at IS NULL;
 
-DROP VIEW IF EXISTS active_room_types;
+
 CREATE VIEW active_room_types AS
 SELECT * FROM room_types 
 WHERE is_active = TRUE AND deleted_at IS NULL;
