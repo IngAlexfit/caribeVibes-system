@@ -34,6 +34,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/contact")
 public class ContactController {
+    @Autowired
+    private org.springframework.core.env.Environment environment;
 
     private static final Logger logger = LoggerFactory.getLogger(ContactController.class);
 
@@ -492,46 +494,56 @@ public class ContactController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> getSmtpConfiguration() {
         logger.info("Obteniendo configuración SMTP actual");
-        
         try {
-            // Verificar variables de entorno directamente
-            String envMailUsername = System.getenv("MAIL_USERNAME");
-            String envMailPassword = System.getenv("MAIL_PASSWORD");
-            String envEmailFrom = System.getenv("EMAIL_FROM");
-            String envAdminEmail = System.getenv("ADMIN_EMAIL");
-            
+            // Usar la instancia inyectada de Environment
+            org.springframework.core.env.Environment env = this.environment;
+
+            // SMTP config usados por Spring Boot
+            String smtpHost = env.getProperty("spring.mail.host", "smtp.maileroo.com");
+            String smtpPort = env.getProperty("spring.mail.port", "587");
+            String smtpUsername = env.getProperty("spring.mail.username", "NOT_SET");
+            String smtpPassword = env.getProperty("spring.mail.password");
+
+            // Email config usados por la app
+            String appEmailFrom = env.getProperty("app.email.from", "noreply@caribevibes.com (DEFAULT)");
+            String appEmailFromName = env.getProperty("app.email.from-name", "Caribe Vibes Support");
+            String appAdminEmail = env.getProperty("app.email.admin-email", "admin@caribevibes.com (DEFAULT)");
+
+            // Variables de entorno (para diagnóstico)
+            String envMailUsername = System.getenv("MAIL_USERNAME_CARIBE_VIBES");
+            String envMailPassword = System.getenv("MAIL_PASSWORD_CARIBE_VIBES");
+            String envEmailFrom = System.getenv("EMAIL_FROM_CARIBE_VIBES");
+            String envAdminEmail = System.getenv("ADMIN_EMAIL_CARIBE_VIBES");
+
             Map<String, Object> config = Map.of(
                 "smtp", Map.of(
-                    "host", "smtp.maileroo.com",
-                    "port", 587,
-                    "username", envMailUsername != null ? envMailUsername : "NOT_SET",
-                    "hasPassword", envMailPassword != null && !envMailPassword.isEmpty()
+                    "host", smtpHost,
+                    "port", smtpPort,
+                    "username", smtpUsername,
+                    "hasPassword", smtpPassword != null && !smtpPassword.isEmpty()
                 ),
                 "email", Map.of(
-                    "from", envEmailFrom != null ? envEmailFrom : "noreply@caribevibes.com (DEFAULT)",
-                    "adminEmail", envAdminEmail != null ? envAdminEmail : "admin@caribevibes.com (DEFAULT)"
+                    "from", appEmailFrom,
+                    "fromName", appEmailFromName,
+                    "adminEmail", appAdminEmail
                 ),
                 "environment", Map.of(
-                    "MAIL_USERNAME", envMailUsername != null ? envMailUsername : "❌ NOT_SET",
-                    "MAIL_PASSWORD", envMailPassword != null ? "✅ SET" : "❌ NOT_SET",
-                    "EMAIL_FROM", envEmailFrom != null ? envEmailFrom : "❌ NOT_SET (usando default)",
-                    "ADMIN_EMAIL", envAdminEmail != null ? envAdminEmail : "❌ NOT_SET (usando default)"
+                    "MAIL_USERNAME_CARIBE_VIBES", envMailUsername != null ? envMailUsername : "❌ NOT_SET",
+                    "MAIL_PASSWORD_CARIBE_VIBES", envMailPassword != null ? "✅ SET" : "❌ NOT_SET",
+                    "EMAIL_FROM_CARIBE_VIBES", envEmailFrom != null ? envEmailFrom : "❌ NOT_SET (usando default)",
+                    "ADMIN_EMAIL_CARIBE_VIBES", envAdminEmail != null ? envAdminEmail : "❌ NOT_SET (usando default)"
                 ),
-                "recommendation", "Si EMAIL_FROM no está configurado, usa el mismo email que MAIL_USERNAME",
+                "recommendation", "Verifica que los valores en 'email' coincidan con los usados en la funcionalidad de respuesta de contacto.",
                 "timestamp", System.currentTimeMillis()
             );
-            
             return ResponseEntity.ok(config);
-            
         } catch (Exception e) {
             logger.error("Error al obtener configuración SMTP: {}", e.getMessage(), e);
-            
             Map<String, Object> errorResponse = Map.of(
                 "success", false,
                 "message", "Error al obtener configuración SMTP",
                 "error", e.getMessage()
             );
-            
             return ResponseEntity.status(500).body(errorResponse);
         }
     }

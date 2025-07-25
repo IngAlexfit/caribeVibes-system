@@ -61,7 +61,8 @@ public class EmailService {
             
             mailSender.send(message);
             
-            log.info("Email simple enviado exitosamente a: {}", to);
+            log.info("Email simple enviado exitosamente. Detalles: [Para: {}] [Desde: {}] [Nombre Remitente: {}] [Admin: {}] [Asunto: {}]", 
+                to, fromEmail, fromName, adminEmail, subject);
             return CompletableFuture.completedFuture(true);
             
         } catch (Exception e) {
